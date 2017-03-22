@@ -421,7 +421,7 @@ public class Main {
         sb.append(className + "(BackgroundService service) { super(service, " + className + ".TABLE_NAME); }\n");
         sb.append('\n');
 
-        sb.append(className + "(BackgroundService service, JSONObject rawData) { super(service, " + className + ".TABLE_NAME, rawData); }\n");
+        sb.append(className + "(BackgroundService service, JSONObject rawData) { super(service, " + className + ".TABLE_NAME, rawData); load(rawData);}\n");
         sb.append('\n');
 
         sb.append(className + "(BackgroundService service");
@@ -470,7 +470,16 @@ public class Main {
             sb.append('\n');
 
             sb.append("public void set" + upper + "(" + c.getJavaClass() + " " + camel + ") { \n");
-            sb.append("this.mRawData.put(" + c.getColumnName() + ", " + camel + ");\n");
+            sb.append("this.mRawData.put(" + c.getColumnName() + ", " + camel);
+
+            switch (c.getJavaClass()) {
+                case "Boolean":
+                case "boolean":
+                    sb.append("? 1 : 0");
+                    break;
+            }
+            sb.append(");\n");
+
             sb.append("this." + camel + " = " + camel + ";\n}\n");
             sb.append('\n');
         }
