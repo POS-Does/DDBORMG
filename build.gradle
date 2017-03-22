@@ -1,13 +1,17 @@
-group 'DoesDBORMGenerator'
-version '0.2-SNAPSHOT'
+group = "com.android305.ddbormg"
+version '0.2'
 
 apply plugin: 'java'
 apply plugin: 'java-library-distribution'
 
 sourceCompatibility = 1.8
 
+if (hasProperty('awsAccessKey')) apply from: 'repositories.gradle'
+
 repositories {
+    mavenLocal()
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
