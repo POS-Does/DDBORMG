@@ -70,11 +70,11 @@ public class Column {
                 if (remarks != null && remarks.contains("BigDecimal")) {
                     BigDecimal bd = new BigDecimal(defaultValue);
                     if (bd.compareTo(BigDecimal.ZERO) == 0) {
-                        return "BigDecimal.ZERO";
+                        return "BigDecimal.ZERO;";
                     } else if (bd.compareTo(BigDecimal.ONE) == 0) {
-                        return "BigDecimal.ONE";
+                        return "BigDecimal.ONE;";
                     } else if (bd.compareTo(BigDecimal.TEN) == 0) {
-                        return "BigDecimal.TEN";
+                        return "BigDecimal.TEN;";
                     }
                     return "new BigDecimal(\"" + defaultValue + "\");";
                 }
