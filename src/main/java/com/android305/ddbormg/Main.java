@@ -626,14 +626,27 @@ public class Main {
                         case "Time":
                         case "Timestamp":
                         case "Date":
-                            sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));\n");
-                            sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = null;\n");
-                            sb.append("if(" + toLowerCamel(c.getColumnName()) + "Val != null) {\n");
-                            sb.append(toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(" + toLowerCamel(c.getColumnName()) + "Val);\n");
-                            sb.append("}\n");
+                            if (c.nullable()) {
+                                sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));\n");
+                                sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = null;\n");
+                                sb.append("if(" + toLowerCamel(c.getColumnName()) + "Val != null) {\n");
+                                sb.append(toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(" + toLowerCamel(c.getColumnName()) + "Val);\n");
+                                sb.append("}\n");
+                            } else {
+                                sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c
+                                        .getColumnName() + ")));\n");
+                            }
                             break;
                         case "BigDecimal":
-                            sb.append("BigDecimal " + toLowerCamel(c.getColumnName()) + " = new BigDecimal(cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + ")));\n");
+                            if (c.nullable()) {
+                                sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));\n");
+                                sb.append("BigDecimal " + toLowerCamel(c.getColumnName()) + " = null;\n");
+                                sb.append("if(" + toLowerCamel(c.getColumnName()) + "Val != null) {\n");
+                                sb.append(toLowerCamel(c.getColumnName()) + " = new BigDecimal(" + toLowerCamel(c.getColumnName()) + "Val);\n");
+                                sb.append("}\n");
+                            } else {
+                                sb.append("BigDecimal " + toLowerCamel(c.getColumnName()) + " = new BigDecimal(cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + ")));\n");
+                            }
                             break;
                         case "JSONObject":
                         case "JSONArray":

@@ -6,3 +6,4 @@ gradle.properties
 *Thumbs.db*
 *.iml
 repositories.gradle
+app/
