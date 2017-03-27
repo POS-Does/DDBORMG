@@ -610,18 +610,18 @@ public class Main {
                             break;
                         case "Integer":
                             sb.append("Integer " + toLowerCamel(c.getColumnName()) + " = null;\n");
-                            sb.append("try{");
+                            sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "))) {");
                             sb.append(toLowerCamel(c.getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));");
-                            sb.append("}catch(Exception ignored){}\n");
+                            sb.append("}\n");
                             break;
                         case "boolean":
                             sb.append("boolean " + toLowerCamel(c.getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + ")) == 1;\n");
                             break;
                         case "Boolean":
                             sb.append("Boolean " + toLowerCamel(c.getColumnName()) + " = null;\n");
-                            sb.append("try{");
+                            sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "))) {");
                             sb.append(toLowerCamel(c.getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + ")) == 1;");
-                            sb.append("}catch(Exception ignored){}\n");
+                            sb.append("}\n");
                             break;
                         case "Time":
                         case "Timestamp":
