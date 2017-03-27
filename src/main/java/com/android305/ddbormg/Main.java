@@ -12,7 +12,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -102,7 +101,7 @@ public class Main {
             List<String> lines = FileUtils.readLines(javaFile, "UTF-8");
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i);
-                if (line.contains("// Generated ")) {
+                if (line.contains("// Generated")) {
                     write = true;
                     break;
                 }
@@ -129,8 +128,7 @@ public class Main {
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     private String generateCacheableClass(List<String> cachedTables) throws SQLException {
         StringBuilder sb = new StringBuilder();
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        sb.append("// Generated " + timestamp + "\n");
+        sb.append("// Generated\n");
         sb.append("package com.android305.posdoes.rest.routes;\n");
         sb.append("import com.android305.posdoes.rest.RequestTypes;\n");
         sb.append("public class CacheController extends Controller {\n");
@@ -152,8 +150,7 @@ public class Main {
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     private String generateSqliteClass(List<String> cachedTables) throws SQLException {
         StringBuilder sb = new StringBuilder();
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        sb.append("// Generated " + timestamp + "\n");
+        sb.append("// Generated\n");
         sb.append("package com.android305.posdoes.service.sqlite;\n");
 
         sb.append("import android.content.Context;\n");
@@ -220,9 +217,8 @@ public class Main {
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     private String generatePhpCacheableController(DatabaseMetaData md, List<String> cachedTables) throws SQLException {
         StringBuilder sb = new StringBuilder();
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         sb.append("<?php\n");
-        sb.append("// Generated " + timestamp + "\n");
+        sb.append("// Generated\n");
         sb.append("// Cache\n");
         sb.append("$app->group('/api/v1/cache', function () use ($app) {\n");
         sb.append('\n');
@@ -283,8 +279,7 @@ public class Main {
 
             columns.add(new Column(tableName, columnName, columnType, columnSize, nullable, defaultValue, remarks));
         }
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        sb.append("// Generated " + timestamp + "\n");
+        sb.append("// Generated\n");
 
         sb.append("package com.android305.posdoes.rest.objects;\n");
 
@@ -345,8 +340,7 @@ public class Main {
             Column c = new Column(tableName, columnName, columnType, columnSize, nullable, defaultValue, remarks);
             columns.add(c);
         }
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        sb.append("// Generated " + timestamp + "\n");
+        sb.append("// Generated\n");
 
         sb.append("package com.android305.posdoes.rest.objects;\n");
 
