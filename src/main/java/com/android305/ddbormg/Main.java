@@ -626,8 +626,11 @@ public class Main {
                         case "Time":
                         case "Timestamp":
                         case "Date":
-                            sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(cursor." + c.getSQLiteGetter() + "(cursor.getColumnIndexOrThrow(" + className + "." + c
-                                    .getColumnName() + ")));\n");
+                            sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));\n");
+                            sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = null;\n");
+                            sb.append("if(" + toLowerCamel(c.getColumnName()) + "Val != null) {\n");
+                            sb.append(toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(" + toLowerCamel(c.getColumnName()) + "Val);\n");
+                            sb.append("}\n");
                             break;
                         case "BigDecimal":
                             sb.append("BigDecimal " + toLowerCamel(c.getColumnName()) + " = new BigDecimal(cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + ")));\n");
