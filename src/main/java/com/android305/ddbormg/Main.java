@@ -289,12 +289,12 @@ public class Main {
         sb.append("import com.android305.posdoes.rest.utils.json.JSONObject;\n");
         sb.append("import com.android305.posdoes.service.BackgroundService;\n");
 
-
+        sb.append("import java.io.Serializable;\n");
         sb.append("import java.sql.Timestamp;\n");
         sb.append("import java.sql.Time;\n");
         sb.append("import java.math.BigDecimal;\n");
 
-        sb.append("public class " + className + "_ extends " + className + " {\n");
+        sb.append("public class " + className + "_ extends " + className + " implements Serializable {\n");
 
         // public ClassName_(BackgroundService service, {no defaults}) {
         {
@@ -385,6 +385,7 @@ public class Main {
             sb.append("import com.android305.posdoes.service.BackgroundService;\n");
             sb.append("import com.androidnetworking.error.ANError;\n");
 
+            sb.append("import java.io.Serializable;\n");
             sb.append("import java.sql.Timestamp;\n");
             sb.append("import java.sql.Time;\n");
             sb.append("import java.text.SimpleDateFormat;\n");
@@ -396,7 +397,7 @@ public class Main {
         }
 
         // public class ClassName extends {CachedObject|AndroidSQLObject} {
-        sb.append("public class " + className + " extends " + (cached ? "CachedObject" : "AndroidSQLObject") + " {\n");
+        sb.append("public class " + className + " extends " + (cached ? "CachedObject" : "AndroidSQLObject") + " implements Serializable {\n");
 
         sb.append("static final String TAG = " + className + ".class.getSimpleName();\n");
         sb.append('\n');
