@@ -295,14 +295,37 @@ public class Main {
         sb.append("import java.math.BigDecimal;\n");
 
         sb.append("public class " + className + "_ extends " + className + " {\n");
-        sb.append("public " + className + "_(BackgroundService service) { super(service); }\n");
-        sb.append('\n');
+
+        // public ClassName_(BackgroundService service, {no defaults}) {
+        {
+            sb.append("public " + className + "_(BackgroundService service");
+            for (int i = 3; i < columns.size(); i++) {
+                Column c = columns.get(i);
+                if (c.getDefaultValue() == null && !c.nullable()) {
+                    sb.append(", " + c.getJavaClass() + " " + toLowerCamel(c.getColumnName()));
+                }
+            }
+            sb.append(") {\n");
+            sb.append("super(service, null, null, null");
+            for (int i = 3; i < columns.size(); i++) {
+                Column c = columns.get(i);
+                if (c.getDefaultValue() == null && !c.nullable()) {
+                    sb.append(", " + toLowerCamel(c.getColumnName()));
+                } else {
+                    String defaultValue = c.getJavaDefaultValue();
+                    sb.append(", " + defaultValue.substring(0, defaultValue.length() - 1));
+                }
+            }
+            sb.append(");\n");
+            sb.append("}\n\n");
+        }
 
         sb.append("public " + className + "_(BackgroundService service, JSONObject rawData) { super(service, rawData); }\n");
         sb.append('\n');
 
-        sb.append("public " + className + "_(BackgroundService service");
-        for (Column c : columns) {
+        sb.append("public " + className + "_(BackgroundService service, Integer " + toLowerCamel(columns.get(0).getColumnName()));
+        for (int i = 1; i < columns.size(); i++) {
+            Column c = columns.get(i);
             sb.append(", " + c.getJavaClass() + " " + toLowerCamel(c.getColumnName()));
         }
         sb.append(") {\n");
@@ -424,9 +447,29 @@ public class Main {
 
         // Constructors
         {
-            // ClassName(BackgroundService service) {
-            sb.append(className + "(BackgroundService service) { super(service, " + className + ".TABLE_NAME); }\n");
-            sb.append('\n');
+            // ClassName(BackgroundService service, {no defaults}) {
+            {
+                sb.append(className + "(BackgroundService service");
+                for (int i = 3; i < columns.size(); i++) {
+                    Column c = columns.get(i);
+                    if (c.getDefaultValue() == null && !c.nullable()) {
+                        sb.append(", " + c.getJavaClass() + " " + toLowerCamel(c.getColumnName()));
+                    }
+                }
+                sb.append(") {\n");
+                sb.append("this(service, null, null, null");
+                for (int i = 3; i < columns.size(); i++) {
+                    Column c = columns.get(i);
+                    if (c.getDefaultValue() == null && !c.nullable()) {
+                        sb.append(", " + toLowerCamel(c.getColumnName()));
+                    } else {
+                        String defaultValue = c.getJavaDefaultValue();
+                        sb.append(", " + defaultValue.substring(0, defaultValue.length() - 1));
+                    }
+                }
+                sb.append(");\n");
+                sb.append("}\n\n");
+            }
 
             // ClassName(BackgroundService service, JSONObject rawData) {
             sb.append(className + "(BackgroundService service, JSONObject rawData) { super(service, " + className + ".TABLE_NAME, rawData); load(rawData);}\n");
@@ -434,8 +477,9 @@ public class Main {
 
             // ClassName(BackgroundService service, {COLUMN_OBJECT_DEFINITIONS}) {
             {
-                sb.append(className + "(BackgroundService service");
-                for (Column c : columns) {
+                sb.append(className + "(BackgroundService service, Integer " + toLowerCamel(columns.get(0).getColumnName()));
+                for (int i = 1; i < columns.size(); i++) {
+                    Column c = columns.get(i);
                     sb.append(", " + c.getJavaClass() + " " + toLowerCamel(c.getColumnName()));
                 }
                 sb.append(") {\n");
