@@ -544,6 +544,8 @@ public class Main {
 
                     switch (c.getJavaClass()) {
                         case "Boolean":
+                            sb.append(" != null ? (" + camel + " ? 1 : 0) : null");
+                            break;
                         case "boolean":
                             sb.append("? 1 : 0");
                             break;
