@@ -622,7 +622,7 @@ public class Main {
                 sb.append("Cursor cursor = db.query(" + className + ".TABLE_NAME, projection, selection, selectionArgs, null, null, null);\n");
                 sb.append("List<" + className + "_> list = convertCursor(service, cursor);\n");
                 sb.append("if (list.size() > 0) return list.get(0);\n");
-                sb.append("return null;\n");
+                sb.append("throw new RuntimeException(\"Id `\" + id + \"` for table `\" + TABLE_NAME + \"` not found.\");\n");
                 sb.append("}\n");
             }
 
