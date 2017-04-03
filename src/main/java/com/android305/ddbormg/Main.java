@@ -159,7 +159,6 @@ public class Main {
         sb.append("import android.util.Log;\n");
         sb.append("import com.android305.posdoes.rest.exceptions.CompanyException;\n");
         sb.append("import com.android305.posdoes.rest.exceptions.DeviceException;\n");
-        sb.append("import com.android305.posdoes.rest.utils.Encryption;\n");
         sb.append("import com.android305.posdoes.service.BackgroundService;\n");
         sb.append("import com.androidnetworking.error.ANError;\n");
 
@@ -199,7 +198,7 @@ public class Main {
         }
         sb.append("}\n");
 
-        sb.append("public void loadCaches(BackgroundService service) throws DeviceException, Encryption.InvalidSecretKeyException, CompanyException, ANError {\n");
+        sb.append("public void loadCaches(BackgroundService service) throws DeviceException, CompanyException, ANError {\n");
 
         for (String c : cachedTables) {
             String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, c);
@@ -242,7 +241,6 @@ public class Main {
 
             String path = "/all/" + c.replace("_", "/");
             sb.append("    /**\n");
-            sb.append("     * @EncryptedResponse\n");
             sb.append("     * @DeviceAuthenticationRequired\n");
             sb.append("     */\n");
             sb.append("    $app->get('" + path + "', function ($request, $response, $args) {\n");
@@ -254,7 +252,7 @@ public class Main {
             sb.append("        } catch (\\Exception $e) {\n");
             sb.append("            $responseArray = array(\"error\" => \"UNKNOWN_ERROR\", \"error_msg\" => $e->getMessage());\n");
             sb.append("        }\n");
-            sb.append("        return $this->response->withHeader('Encrypt', 'true')->withJson($responseArray);\n");
+            sb.append("        return $this->response->withJson($responseArray);\n");
             sb.append("    });\n");
             sb.append('\n');
         }
@@ -379,7 +377,6 @@ public class Main {
             sb.append("import com.android305.posdoes.rest.exceptions.CompanyException;\n");
             sb.append("import com.android305.posdoes.rest.exceptions.DeviceException;\n");
             sb.append("import com.android305.posdoes.rest.routes.CacheController;\n");
-            sb.append("import com.android305.posdoes.rest.utils.Encryption;\n");
             sb.append("import com.android305.posdoes.rest.utils.json.JSONArray;\n");
             sb.append("import com.android305.posdoes.rest.utils.json.JSONObject;\n");
             sb.append("import com.android305.posdoes.service.BackgroundService;\n");
@@ -626,9 +623,9 @@ public class Main {
                 sb.append("}\n");
             }
 
-            // public static void loadAll(BackgroundService service) throws DeviceException, Encryption.InvalidSecretKeyException, CompanyException, ANError {
+            // public static void loadAll(BackgroundService service) throws DeviceException, CompanyException, ANError {
             {
-                sb.append("public static void loadAll(BackgroundService service) throws DeviceException, Encryption.InvalidSecretKeyException, CompanyException, ANError {\n");
+                sb.append("public static void loadAll(BackgroundService service) throws DeviceException, CompanyException, ANError {\n");
                 sb.append("loaded = null;\n");
                 sb.append("SQLiteDatabase db = service.getPOSDb().getWritableDatabase();\n");
                 sb.append("db.execSQL(SQL_TRUNCATE_ENTRIES);\n");
