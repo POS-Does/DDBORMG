@@ -612,7 +612,7 @@ public class Main {
             // public static ClassName_ getClassNameById(BackgroundService service, Integer id) {
             {
                 sb.append("public static " + className + "_ get" + className + "ById(BackgroundService service, Integer id) {\n");
-                sb.append("Log.v(TAG, \"Retrieved \" + TAG + \" (\" + id + \")\");\n");
+                sb.append("Log.v(TAG, \"Retrieved \" + TABLE_NAME + \" (\" + id + \")\");\n");
                 sb.append("SQLiteDatabase db = service.getPOSDb().getReadableDatabase();\n");
                 sb.append('\n');
 
