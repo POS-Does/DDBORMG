@@ -558,7 +558,7 @@ public class Main {
 
         // public boolean equals() {
         {
-            sb.append("@SuppressWarnings(\"SimplifiableIfStatement\")\n");
+            sb.append("@SuppressWarnings({\"SimplifiableIfStatement\", \"RedundantIfStatement\"})\n");
             sb.append("@Override\n");
             sb.append("public boolean equals(Object o) {\n");
             sb.append("if (this == o) return true;\n");
@@ -586,6 +586,7 @@ public class Main {
                         break;
                 }
             }
+            sb.append("return true;\n");
             sb.append("}\n\n");
         }
 
