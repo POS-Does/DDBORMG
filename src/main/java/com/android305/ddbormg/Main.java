@@ -556,6 +556,39 @@ public class Main {
             }
         }
 
+        // public boolean equals() {
+        {
+            sb.append("@SuppressWarnings(\"SimplifiableIfStatement\")\n");
+            sb.append("@Override\n");
+            sb.append("public boolean equals(Object o) {\n");
+            sb.append("if (this == o) return true;\n");
+            sb.append("if (!(o instanceof " + className + ")) return false;\n");
+
+            // ClassName className = (ClassName) o;
+            sb.append(className + " " + toLowerCamel(className) + " = (" + className + ") o;\n");
+
+            sb.append("if(!super.equals(ticket)) return false;\n");
+
+            for (int i = 3; i < columns.size(); i++) {
+                Column c = columns.get(i);
+                String upper = toUpperCamel(c.getColumnName());
+                String get = " get" + upper + "()";
+
+                switch (c.getJavaClass()) {
+                    case "int":
+                    case "boolean":
+                        // if (getter() != className.getter())
+                        sb.append("if(" + get + " != " + toLowerCamel(className) + "." + get + ") return false;\n");
+                        break;
+                    default:
+                        // if (getter() != null ? !getter().equals(className.getter()) : className.getter() != null)
+                        sb.append("if(" + get + " != null ? !" + get + ".equals(" + toLowerCamel(className) + "." + get + ") : " + toLowerCamel(className) + "." + get + " != null) return false;\n");
+                        break;
+                }
+            }
+            sb.append("}\n\n");
+        }
+
         // static class SQLiteHelper {
         if (cached) {
             sb.append("static class SQLiteHelper {\n");

@@ -140,10 +140,10 @@ public class Column {
             case "BIT":
             case "TINYINT":
                 return nullable ? "Boolean" : "boolean";
-            case "DOUBLE":
-                throw new RuntimeException("Fix it felix. Column `" + columnName + "` in table `" + tableName + "` uses double, change it to varchar");
             case "DATE":
                 return "Date";
+            case "DOUBLE":
+                throw new RuntimeException("Fix it felix. Column `" + columnName + "` in table `" + tableName + "` uses double, change it to varchar");
             default:
                 throw new RuntimeException("Fix it felix. Unsupported column `" + columnName + "` in table `" + tableName + "` of type `" + columnType + "`");
         }
