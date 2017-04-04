@@ -567,7 +567,7 @@ public class Main {
             // ClassName className = (ClassName) o;
             sb.append(className + " " + toLowerCamel(className) + " = (" + className + ") o;\n");
 
-            sb.append("if(!super.equals(ticket)) return false;\n");
+            sb.append("if(!super.equals(" + toLowerCamel(className) + ")) return false;\n");
 
             for (int i = 3; i < columns.size(); i++) {
                 Column c = columns.get(i);
