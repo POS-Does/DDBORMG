@@ -72,7 +72,6 @@ public class Main {
     private String dbPassword;
 
     private Main(String... args) throws SQLException {
-
         try {
             JCommander jc = new JCommander(this);
             CommandAndroid android = new CommandAndroid();
@@ -89,7 +88,7 @@ public class Main {
             mConnection = getConnection();
 
             if (jc.getParsedCommand() == null) {
-                System.err.print("Requires command android, rest, or mysql");
+                System.err.println("Requires command android, rest, or mysql");
                 System.exit(1);
             }
 
@@ -104,11 +103,11 @@ public class Main {
                     doMysql(mysql.schema, mysql.initial, mysql.menu);
                     break;
                 default:
-                    System.err.print("Requires command android, rest, or mysql");
+                    System.err.println("Requires command android, rest, or mysql");
                     System.exit(1);
             }
         } catch (ParameterException e) {
-            System.err.print(e.getLocalizedMessage());
+            System.err.println(e.getLocalizedMessage());
         }
     }
 
@@ -126,7 +125,6 @@ public class Main {
                 if (cached) {
                     cacheTables.add(tableName);
                 }
-                System.out.println("Generating Class `" + tableName + "`...");
                 String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
                 File dir = new File("app/src/main/java/com/android305/posdoes/rest/objects");
                 File javaFile = new File(dir, className + ".java");
