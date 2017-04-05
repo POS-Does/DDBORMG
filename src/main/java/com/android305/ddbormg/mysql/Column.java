@@ -1,4 +1,4 @@
-package com.android305.ddbormg;
+package com.android305.ddbormg.mysql;
 
 import java.math.BigDecimal;
 
