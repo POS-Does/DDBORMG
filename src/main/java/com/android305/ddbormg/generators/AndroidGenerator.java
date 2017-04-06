@@ -246,22 +246,21 @@ public class AndroidGenerator {
         {
             sb.append("/* Columns */\n");
 
-            for (Column c : columns) {
-                if (!"CREATED_TIME".equals(c.getColumnName()) && !"MODIFIED_TIME".equals(c.getColumnName())) {
-                    sb.append("public static final String " + c.getColumnName() + " = \"" + c.getColumnName() + "\"; // " + c.getColumnType());
-                    switch (c.getColumnType()) {
-                        case "VARCHAR":
-                            sb.append("(" + c.getColumnSize() + ")");
-                            break;
-                        case "INT":
-                            sb.append("(" + (c.getColumnSize() + 1) + ")");
-                            break;
-                    }
-                    if (c.nullable()) {
-                        sb.append(" NULLABLE");
-                    }
-                    sb.append('\n');
+            for (int i = 3; i < columns.size(); i++) {
+                Column c = columns.get(i);
+                sb.append("public static final String " + c.getColumnName() + " = \"" + c.getColumnName() + "\"; // " + c.getColumnType());
+                switch (c.getColumnType()) {
+                    case "VARCHAR":
+                        sb.append("(" + c.getColumnSize() + ")");
+                        break;
+                    case "INT":
+                        sb.append("(" + (c.getColumnSize() + 1) + ")");
+                        break;
                 }
+                if (c.nullable()) {
+                    sb.append(" NULLABLE");
+                }
+                sb.append('\n');
             }
             sb.append('\n');
         }
@@ -346,13 +345,6 @@ public class AndroidGenerator {
                 sb.append("set" + toUpperCamel(c.getColumnName()) + "(mRawData." + getter + capitalize(c.getJavaClass()) + "(" + c.getColumnName() + "));\n");
             }
             sb.append("}\n");
-            sb.append('\n');
-        }
-
-        // String getIdColumnName() {
-        {
-            sb.append("@Override\n");
-            sb.append("String getIdColumnName() { return " + columns.get(0).getColumnName() + ";}\n");
             sb.append('\n');
         }
 
