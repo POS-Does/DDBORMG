@@ -4,15 +4,16 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class Table {
 
     private String name;
     private String remarks;
 
-    private HashMap<String, Column> columns;
-    private HashMap<String, ForeignKey> foreignKeys;
-    private HashMap<String, Index> indexes;
+    private LinkedHashMap<String, Column> columns;
+    private LinkedHashMap<String, ForeignKey> foreignKeys;
+    private LinkedHashMap<String, Index> indexes;
 
     public Table(String name, String remarks) {
         this.name = name;
@@ -28,7 +29,7 @@ public class Table {
     }
 
     public void loadColumns(DatabaseMetaData md) throws SQLException {
-        columns = new HashMap<>();
+        columns = new LinkedHashMap<>();
         ResultSet r = md.getColumns(null, null, name, null);
         while (r.next()) {
             String columnName = r.getString("COLUMN_NAME");
@@ -43,7 +44,7 @@ public class Table {
     }
 
     public void loadForeignKeys(DatabaseMetaData md) throws SQLException {
-        foreignKeys = new HashMap<>();
+        foreignKeys = new LinkedHashMap<>();
         ResultSet rs = md.getImportedKeys(null, null, name);
         while (rs.next()) {
 
@@ -59,7 +60,7 @@ public class Table {
     }
 
     public void loadIndexes(DatabaseMetaData md) throws SQLException {
-        indexes = new HashMap<>();
+        indexes = new LinkedHashMap<>();
         ResultSet rs = md.getIndexInfo(null, null, name, false, false);
         while (rs.next()) {
             boolean unique = !rs.getBoolean("NON_UNIQUE");
