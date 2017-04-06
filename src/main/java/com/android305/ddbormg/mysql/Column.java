@@ -65,6 +65,7 @@ public class Column {
             return "null;";
         switch (columnType) {
             case "INT":
+            case "DOUBLE":
                 return defaultValue + ';';
             case "VARCHAR":
                 if (remarks != null && remarks.contains("BigDecimal")) {
@@ -118,6 +119,8 @@ public class Column {
         switch (columnType) {
             case "INT":
                 return nullable ? "Integer" : "int";
+            case "DOUBLE":
+                return nullable ? "Double" : "double";
             case "VARCHAR":
                 if (remarks != null && remarks.contains("BigDecimal")) {
                     return "BigDecimal";
@@ -142,8 +145,6 @@ public class Column {
                 return nullable ? "Boolean" : "boolean";
             case "DATE":
                 return "Date";
-            case "DOUBLE":
-                throw new RuntimeException("Fix it felix. Column `" + columnName + "` in table `" + tableName + "` uses double, change it to varchar");
             default:
                 throw new RuntimeException("Fix it felix. Unsupported column `" + columnName + "` in table `" + tableName + "` of type `" + columnType + "`");
         }
@@ -155,6 +156,8 @@ public class Column {
             case "TINYINT":
             case "INT":
                 return "INTEGER";
+            case "DOUBLE":
+                return "DOUBLE";
             case "TIME":
             case "JSON":
             case "VARCHAR":
@@ -174,6 +177,8 @@ public class Column {
             case "TINYINT":
             case "INT":
                 return "getInt";
+            case "DOUBLE":
+                return "getDouble";
             case "TIME":
             case "JSON":
             case "VARCHAR":

@@ -416,6 +416,7 @@ public class AndroidGenerator {
                 switch (c.getJavaClass()) {
                     case "int":
                     case "boolean":
+                    case "double":
                         // if (getter() != className.getter())
                         sb.append("if(" + get + " != " + toLowerCamel(className) + "." + get + ") return false;\n");
                         break;
@@ -571,9 +572,10 @@ public class AndroidGenerator {
                                 sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = cursor." + c.getSQLiteGetter() + "(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));\n");
                                 break;
                             case "Integer":
-                                sb.append("Integer " + toLowerCamel(c.getColumnName()) + " = null;\n");
+                            case "Double":
+                                sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = null;\n");
                                 sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "))) {");
-                                sb.append(toLowerCamel(c.getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));");
+                                sb.append(toLowerCamel(c.getColumnName()) + " = cursor." + c.getSQLiteGetter() + "(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));");
                                 sb.append("}\n");
                                 break;
                             case "boolean":
