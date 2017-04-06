@@ -232,7 +232,7 @@ public class MysqlGenerator {
 
         for (Table t : tables) {
             switch (t.getName()) {
-                case "major_cateogry":
+                case "major_category":
                     majorCategory = t;
                     break;
                 case "menu_category":
