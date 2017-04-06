@@ -79,6 +79,7 @@ public class Column {
                     }
                     return "new BigDecimal(\"" + defaultValue + "\");";
                 }
+            case "TEXT":
                 return '\"' + defaultValue + "\";";
             case "DATETIME":
             case "TIMESTAMP":
@@ -125,6 +126,7 @@ public class Column {
                 if (remarks != null && remarks.contains("BigDecimal")) {
                     return "BigDecimal";
                 }
+            case "TEXT":
                 return "String";
             case "TIMESTAMP":
             case "DATETIME":
@@ -161,6 +163,7 @@ public class Column {
             case "TIME":
             case "JSON":
             case "VARCHAR":
+            case "TEXT":
             case "DATE":
                 return "TEXT";
             case "TIMESTAMP":
@@ -185,6 +188,7 @@ public class Column {
             case "TIMESTAMP":
             case "DATETIME":
             case "DATE":
+            case "TEXT":
                 return "getString";
             default:
                 throw new RuntimeException("Fix it felix. Unsupported column `" + columnName + "` in table `" + tableName + "`");
