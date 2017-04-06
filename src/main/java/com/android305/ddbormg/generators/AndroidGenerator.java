@@ -123,8 +123,8 @@ public class AndroidGenerator {
 
         sb.append("import com.android305.posdoes.service.BackgroundService;\n");
 
-        sb.append("import com.android305.posdoes.rest.utils.json.JSONArray;\n");
-        sb.append("import com.android305.posdoes.rest.utils.json.JSONObject;\n");
+        sb.append("import com.android305.posdoes.utils.json.JSONArray;\n");
+        sb.append("import com.android305.posdoes.utils.json.JSONObject;\n");
         sb.append("import com.android305.posdoes.service.BackgroundService;\n");
 
         sb.append("import java.io.Serializable;\n");
@@ -216,8 +216,8 @@ public class AndroidGenerator {
             sb.append("import com.android305.posdoes.rest.exceptions.CompanyException;\n");
             sb.append("import com.android305.posdoes.rest.exceptions.DeviceException;\n");
             sb.append("import com.android305.posdoes.rest.routes.CacheController;\n");
-            sb.append("import com.android305.posdoes.rest.utils.json.JSONArray;\n");
-            sb.append("import com.android305.posdoes.rest.utils.json.JSONObject;\n");
+            sb.append("import com.android305.posdoes.utils.json.JSONArray;\n");
+            sb.append("import com.android305.posdoes.utils.json.JSONObject;\n");
             sb.append("import com.android305.posdoes.service.BackgroundService;\n");
             sb.append("import com.androidnetworking.error.ANError;\n");
 

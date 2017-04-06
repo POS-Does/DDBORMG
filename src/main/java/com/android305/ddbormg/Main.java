@@ -1,6 +1,7 @@
 package com.android305.ddbormg;
 
 import com.android305.ddbormg.generators.AndroidGenerator;
+import com.android305.ddbormg.generators.JavaGenerator;
 import com.android305.ddbormg.generators.MysqlGenerator;
 import com.android305.ddbormg.generators.RestGenerator;
 import com.android305.ddbormg.mysql.Table;
@@ -37,7 +38,7 @@ public class Main {
 
     @Parameters(commandDescription = "Generate PHP restful API cache routes")
     private class CommandRestAPI {
-        @Parameter(names = {"--overwrite", "-o"}, description = "Overwrite classes regardless of generated status")
+        @Parameter(names = {"--overwrite", "-o"}, description = "Overwrite cache controller regardless of generated status")
         private boolean overwrite = false;
     }
 
@@ -51,6 +52,21 @@ public class Main {
 
         @Parameter(names = {"--menu", "-m"}, description = "Dump menu data")
         private boolean menu = false;
+    }
+
+    @Parameters(commandDescription = "Generate Java ORM classes")
+    private class CommandJava {
+        @Parameter(names = {"--package"}, description = "Java main package of app i.e. com.android305.posdoes.print.server", required = true)
+        private String packageName;
+
+        @Parameter(names = {"--src-dir"}, description = "Java src directory of app i.e. app/src/", required = true)
+        private String srcDirectory;
+
+        @Parameter(names = {"--overwrite", "-o"}, description = "Overwrite regular classes regardless of generated status")
+        private boolean overwrite = false;
+
+        @Parameter(names = {"--overwrite-underscore", "-ou"}, description = "Overwrite underscore classes regardless of generated status")
+        private boolean overwriteUnderscore = false;
     }
 
     public static void main(String... args) throws SQLException {
@@ -83,12 +99,15 @@ public class Main {
             CommandMysql mysql = new CommandMysql();
             jc.addCommand("mysql", mysql);
 
+            CommandJava java = new CommandJava();
+            jc.addCommand("java", java);
+
             jc.parse(args);
 
             mConnection = getConnection();
 
             if (jc.getParsedCommand() == null) {
-                System.err.println("Requires command android, rest, or mysql");
+                System.err.println("Requires one command android, rest, mysql, java");
                 System.exit(1);
             }
 
@@ -102,8 +121,11 @@ public class Main {
                 case "mysql":
                     doMysql(mysql.schema, mysql.initial, mysql.menu);
                     break;
+                case "java":
+                    doJava(java.srcDirectory, java.packageName, java.overwrite, java.overwriteUnderscore);
+                    break;
                 default:
-                    System.err.println("Requires command android, rest, or mysql");
+                    System.err.println("Requires one command android, rest, mysql, java");
                     System.exit(1);
             }
         } catch (ParameterException e) {
@@ -211,6 +233,27 @@ public class Main {
                 System.out.println("Schema written to db_schema/menu_data.sql");
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    private void doJava(String srcDirectory, String packageName, boolean overwrite, boolean overwriteUnderscore) throws SQLException {
+        DatabaseMetaData md = mConnection.getMetaData();
+        ResultSet result = md.getTables(null, null, null, null);
+
+        while (result.next()) {
+            String tableName = result.getString("TABLE_NAME");
+            String remarks = result.getString("REMARKS");
+            boolean skip = remarks != null && remarks.contains("no_api");
+            if (!skip) {
+                String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
+                File dir = new File(srcDirectory, "main/java/ " + packageName.replaceAll("\\.", "\\/").trim() + "/rest/objects");
+                File javaFile = new File(dir, className + ".java");
+                File underscoreFile = new File(dir, className + "_.java");
+                System.out.println("Generating Class `" + tableName + "`...");
+                generateFile(javaFile, JavaGenerator.generateClass(packageName, md, tableName, className), false, overwrite);
+                System.out.println("Generating Class `" + tableName + "_`...");
+                generateFile(underscoreFile, JavaGenerator.generateUnderscoreClass(packageName, md, tableName, className), true, overwriteUnderscore);
             }
         }
     }
