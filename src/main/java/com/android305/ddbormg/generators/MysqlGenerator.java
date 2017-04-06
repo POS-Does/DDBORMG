@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 @SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "StringBufferReplaceableByString"})
 public class MysqlGenerator {
@@ -55,52 +54,49 @@ public class MysqlGenerator {
             sb.append("  `ID` int(11) NOT NULL AUTO_INCREMENT,\n");
             sb.append("  `CREATED_TIME` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n");
             sb.append("  `MODIFIED_TIME` timestamp NOT NULL DEFAULT '1970-01-01 05:00:00' ON UPDATE CURRENT_TIMESTAMP,\n");
-            Iterator<Column> columns = t.getColumns().values().iterator();
-            columns.next();
-            columns.next();
-            columns.next();
-            while (columns.hasNext()) {
-                Column c = columns.next();
-                sb.append("  `" + c.getColumnName() + "` " + c.getColumnType());
+            for (Column c : t.getColumns().values()) {
+                if (!c.getColumnName().equals("ID") && !c.getColumnName().equals("CREATED_TIME") && !c.getColumnName().equals("MODIFIED_TIME")) {
+                    sb.append("  `" + c.getColumnName() + "` " + c.getColumnType());
 
-                switch (c.getColumnType()) {
-                    case "JSON":
-                    case "TIMESTAMP":
-                    case "DATE":
-                    case "TIME":
-                    case "DOUBLE":
-                    case "DATETIME":
-                        sb.append(" ");
-                        break;
-                    case "TINYINT":
-                    case "BIT":
-                        sb.append("(1) ");
-                        break;
-                    case "INT":
-                        sb.append("(11) ");
-                        break;
-                    default:
-                        sb.append("(" + c.getColumnSize() + ") ");
-                        break;
-                }
+                    switch (c.getColumnType()) {
+                        case "JSON":
+                        case "TIMESTAMP":
+                        case "DATE":
+                        case "TIME":
+                        case "DOUBLE":
+                        case "DATETIME":
+                            sb.append(" ");
+                            break;
+                        case "TINYINT":
+                        case "BIT":
+                            sb.append("(1) ");
+                            break;
+                        case "INT":
+                            sb.append("(11) ");
+                            break;
+                        default:
+                            sb.append("(" + c.getColumnSize() + ") ");
+                            break;
+                    }
 
-                if (c.getColumnType().equals("VARCHAR")) {
-                    sb.append("COLLATE utf8mb4_unicode_ci ");
-                }
-                if (!c.nullable()) {
-                    sb.append("NOT NULL ");
-                } else if (c.getDefaultValue() == null) {
-                    sb.append("DEFAULT NULL ");
-                }
-                if (c.getDefaultValue() != null) {
-                    sb.append("DEFAULT '" + c.getDefaultValue() + "' ");
-                }
-                if (c.getRemarks() != null && !c.getRemarks().equals("")) {
-                    sb.append("COMMENT '" + c.getRemarks() + "' ");
-                }
+                    if (c.getColumnType().equals("VARCHAR")) {
+                        sb.append("COLLATE utf8mb4_unicode_ci ");
+                    }
+                    if (!c.nullable()) {
+                        sb.append("NOT NULL ");
+                    } else if (c.getDefaultValue() == null) {
+                        sb.append("DEFAULT NULL ");
+                    }
+                    if (c.getDefaultValue() != null) {
+                        sb.append("DEFAULT '" + c.getDefaultValue() + "' ");
+                    }
+                    if (c.getRemarks() != null && !c.getRemarks().equals("")) {
+                        sb.append("COMMENT '" + c.getRemarks() + "' ");
+                    }
 
-                int lastSpace = sb.toString().lastIndexOf(" ");
-                sb.replace(lastSpace, lastSpace + 1, ",\n");
+                    int lastSpace = sb.toString().lastIndexOf(" ");
+                    sb.replace(lastSpace, lastSpace + 1, ",\n");
+                }
             }
             sb.append("  PRIMARY KEY (`ID`)\n");
             if (t.getRemarks() != null && !t.getRemarks().equals("")) {

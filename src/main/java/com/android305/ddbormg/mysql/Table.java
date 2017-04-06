@@ -52,10 +52,6 @@ public class Table {
             String fkReferencesTableName = rs.getString("PKTABLE_NAME");
             String fkReferencesColumnName = rs.getString("PKCOLUMN_NAME");
 
-            if (fkReferencesColumnName.endsWith("_ID")) {
-                fkReferencesColumnName = "ID";
-            }
-
             ForeignKey fk = new ForeignKey(fkName, fkColumnName, fkReferencesTableName, fkReferencesColumnName);
 
             foreignKeys.put(fkName, fk);
