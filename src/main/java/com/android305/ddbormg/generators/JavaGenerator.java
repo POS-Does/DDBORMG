@@ -187,8 +187,12 @@ public class JavaGenerator {
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
                     if (c.getDefaultValue() == null && !c.nullable()) {
-                        sb.append(", " + c.getJavaClass() + " " + toLowerCamel(c.getColumnName()));
+                        sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + ", ");
                     }
+                }
+                int lastComma = sb.toString().lastIndexOf(",");
+                if (lastComma > -1) {
+                    sb.replace(lastComma, lastComma + 1, "");
                 }
                 sb.append(") {\n");
                 sb.append("this(null, null, null");
