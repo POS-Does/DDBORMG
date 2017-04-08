@@ -247,7 +247,7 @@ public class Main {
             boolean skip = remarks != null && remarks.contains("no_api");
             if (!skip) {
                 String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
-                File dir = new File(srcDirectory, "main/java/ " + packageName.replaceAll("\\.", "\\/").trim() + "/rest/objects");
+                File dir = new File(srcDirectory.trim(), "main/java/ " + packageName.replaceAll("\\.", "\\/").trim() + "/rest/objects");
                 File javaFile = new File(dir, className + ".java");
                 File underscoreFile = new File(dir, className + "_.java");
                 System.out.println("Generating Class `" + tableName + "`...");
