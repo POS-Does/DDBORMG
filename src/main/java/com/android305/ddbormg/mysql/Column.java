@@ -80,6 +80,7 @@ public class Column {
                     return "new BigDecimal(\"" + defaultValue + "\");";
                 }
             case "TEXT":
+            case "MEDIUMTEXT":
                 return '\"' + defaultValue + "\";";
             case "DATETIME":
             case "TIMESTAMP":
@@ -127,6 +128,7 @@ public class Column {
                     return "BigDecimal";
                 }
             case "TEXT":
+            case "MEDIUMTEXT":
                 return "String";
             case "TIMESTAMP":
             case "DATETIME":
@@ -164,6 +166,7 @@ public class Column {
             case "JSON":
             case "VARCHAR":
             case "TEXT":
+            case "MEDIUMTEXT":
             case "DATE":
                 return "TEXT";
             case "TIMESTAMP":
@@ -189,6 +192,7 @@ public class Column {
             case "DATETIME":
             case "DATE":
             case "TEXT":
+            case "MEDIUMTEXT":
                 return "getString";
             default:
                 throw new RuntimeException("Fix it felix. Unsupported column `" + columnName + "` in table `" + tableName + "`");
