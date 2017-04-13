@@ -326,7 +326,7 @@ public class MysqlGenerator {
                         if (value == null) {
                             sb.append("NULL,");
                         } else {
-                            sb.append("'" + value + "',");
+                            sb.append("'" + value.replace("'", "\\\'") + "',");
                         }
                         break;
                 }
