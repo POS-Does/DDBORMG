@@ -285,8 +285,8 @@ public class MysqlGenerator {
         sb.append(generateInsert(menuModifierPage, connection, null));
         sb.append(generateInsert(menuModifierPageByGroup, connection, null));
         sb.append(generateInsert(menuModifier, connection, null));
-        sb.append(generateInsert(menuItem, connection, null));
         sb.append(generateInsert(menuItemGroup, connection, null));
+        sb.append(generateInsert(menuItem, connection, null));
 
         sb.append("/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;\n");
         sb.append("/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;\n");
