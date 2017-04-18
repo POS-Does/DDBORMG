@@ -22,6 +22,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -34,6 +35,12 @@ public class Main {
 
         @Parameter(names = {"--overwrite-underscore", "-ou"}, description = "Overwrite underscore classes regardless of generated status")
         private boolean overwriteUnderscore = false;
+
+        @Parameter(names = {"--exclude"}, description = "Comma separated list of tables to be excluded, ignored if --include is used")
+        private String exclude;
+
+        @Parameter(names = {"--include"}, description = "Comma separated list of tables to be included, if used --exclude is ignored")
+        private String include;
     }
 
     @Parameters(commandDescription = "Generate PHP restful API cache routes")
@@ -67,6 +74,12 @@ public class Main {
 
         @Parameter(names = {"--overwrite-underscore", "-ou"}, description = "Overwrite underscore classes regardless of generated status")
         private boolean overwriteUnderscore = false;
+
+        @Parameter(names = {"--exclude"}, description = "Comma separated list of tables to be excluded, ignored if --include is used")
+        private String exclude;
+
+        @Parameter(names = {"--include"}, description = "Comma separated list of tables to be included, if used --exclude is ignored")
+        private String include;
     }
 
     public static void main(String... args) throws SQLException {
@@ -112,18 +125,40 @@ public class Main {
             }
 
             switch (jc.getParsedCommand()) {
-                case "android":
-                    doAndroid(android.overwrite, android.overwriteUnderscore);
+                case "android": {
+                    ArrayList<String> include = null;
+                    ArrayList<String> exclude = null;
+                    if (android.exclude != null && android.include == null) {
+                        exclude = new ArrayList<>();
+                        Collections.addAll(exclude, android.exclude.replace(" ", "").split(","));
+                    } else if (android.include != null) {
+                        include = new ArrayList<>();
+                        Collections.addAll(include, android.include.replace(" ", "").split(","));
+                    }
+                    doAndroid(android.overwrite, android.overwriteUnderscore, exclude, include);
                     break;
-                case "rest":
+                }
+                case "rest": {
                     doRest(rest.overwrite);
                     break;
-                case "mysql":
+                }
+                case "mysql": {
                     doMysql(mysql.schema, mysql.initial, mysql.menu);
                     break;
-                case "java":
-                    doJava(java.srcDirectory, java.packageName, java.overwrite, java.overwriteUnderscore);
+                }
+                case "java": {
+                    ArrayList<String> include = null;
+                    ArrayList<String> exclude = null;
+                    if (java.exclude != null && java.include == null) {
+                        exclude = new ArrayList<>();
+                        Collections.addAll(exclude, java.exclude.replace(" ", "").split(","));
+                    } else if (java.include != null) {
+                        include = new ArrayList<>();
+                        Collections.addAll(include, java.include.replace(" ", "").split(","));
+                    }
+                    doJava(java.srcDirectory, java.packageName, java.overwrite, java.overwriteUnderscore, exclude, include);
                     break;
+                }
                 default:
                     System.err.println("Requires one command android, rest, mysql, java");
                     System.exit(1);
@@ -133,7 +168,7 @@ public class Main {
         }
     }
 
-    private void doAndroid(boolean overwrite, boolean overwriteUnderscore) throws SQLException {
+    private void doAndroid(boolean overwrite, boolean overwriteUnderscore, ArrayList<String> exclude, ArrayList<String> include) throws SQLException {
         DatabaseMetaData md = mConnection.getMetaData();
         ArrayList<String> cacheTables = new ArrayList<>();
         ResultSet result = md.getTables(null, null, null, null);
@@ -144,17 +179,19 @@ public class Main {
             boolean cached = remarks != null && remarks.contains("cache");
             boolean skip = remarks != null && remarks.contains("no_api");
             if (!skip) {
-                if (cached) {
-                    cacheTables.add(tableName);
+                if ((include != null && include.contains(tableName)) || (exclude != null && !exclude.contains(tableName))) {
+                    if (cached) {
+                        cacheTables.add(tableName);
+                    }
+                    String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
+                    File dir = new File("app/src/main/java/com/android305/posdoes/rest/objects");
+                    File javaFile = new File(dir, className + ".java");
+                    File underscoreFile = new File(dir, className + "_.java");
+                    System.out.println("Generating Class `" + tableName + "`...");
+                    generateFile(javaFile, AndroidGenerator.generateClass(md, tableName, className, cached), false, overwrite);
+                    System.out.println("Generating Class `" + tableName + "_`...");
+                    generateFile(underscoreFile, AndroidGenerator.generateUnderscoreClass(md, tableName, className, cached), true, overwriteUnderscore);
                 }
-                String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
-                File dir = new File("app/src/main/java/com/android305/posdoes/rest/objects");
-                File javaFile = new File(dir, className + ".java");
-                File underscoreFile = new File(dir, className + "_.java");
-                System.out.println("Generating Class `" + tableName + "`...");
-                generateFile(javaFile, AndroidGenerator.generateClass(md, tableName, className, cached), false, overwrite);
-                System.out.println("Generating Class `" + tableName + "_`...");
-                generateFile(underscoreFile, AndroidGenerator.generateUnderscoreClass(md, tableName, className, cached), true, overwriteUnderscore);
             }
         }
         System.out.println("Generating Cache Controller...");
@@ -237,23 +274,24 @@ public class Main {
         }
     }
 
-    private void doJava(String srcDirectory, String packageName, boolean overwrite, boolean overwriteUnderscore) throws SQLException {
+    private void doJava(String srcDirectory, String packageName, boolean overwrite, boolean overwriteUnderscore, ArrayList<String> exclude, ArrayList<String> include) throws SQLException {
         DatabaseMetaData md = mConnection.getMetaData();
         ResultSet result = md.getTables(null, null, null, null);
-
         while (result.next()) {
             String tableName = result.getString("TABLE_NAME");
             String remarks = result.getString("REMARKS");
             boolean skip = remarks != null && remarks.contains("no_api");
             if (!skip) {
-                String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
-                File dir = new File(srcDirectory.trim(), "main/java/" + packageName.replaceAll("\\.", "\\/").trim() + "/rest/objects");
-                File javaFile = new File(dir, className + ".java");
-                File underscoreFile = new File(dir, className + "_.java");
-                System.out.println("Generating Class `" + tableName + "`...");
-                generateFile(javaFile, JavaGenerator.generateClass(packageName, md, tableName, className), false, overwrite);
-                System.out.println("Generating Class `" + tableName + "_`...");
-                generateFile(underscoreFile, JavaGenerator.generateUnderscoreClass(packageName, md, tableName, className), true, overwriteUnderscore);
+                if ((include != null && include.contains(tableName)) || (exclude != null && !exclude.contains(tableName))) {
+                    String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
+                    File dir = new File(srcDirectory.trim(), "main/java/" + packageName.replaceAll("\\.", "\\/").trim() + "/rest/objects");
+                    File javaFile = new File(dir, className + ".java");
+                    File underscoreFile = new File(dir, className + "_.java");
+                    System.out.println("Generating Class `" + tableName + "`...");
+                    generateFile(javaFile, JavaGenerator.generateClass(packageName, md, tableName, className), false, overwrite);
+                    System.out.println("Generating Class `" + tableName + "_`...");
+                    generateFile(underscoreFile, JavaGenerator.generateUnderscoreClass(packageName, md, tableName, className), true, overwriteUnderscore);
+                }
             }
         }
     }
