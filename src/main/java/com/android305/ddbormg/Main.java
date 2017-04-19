@@ -179,7 +179,7 @@ public class Main {
             boolean cached = remarks != null && remarks.contains("cache");
             boolean skip = remarks != null && remarks.contains("no_api");
             if (!skip) {
-                if ((include != null && include.contains(tableName)) || (exclude != null && !exclude.contains(tableName))) {
+                if ((include == null && exclude == null) || (include != null && include.contains(tableName)) || (exclude != null && !exclude.contains(tableName))) {
                     if (cached) {
                         cacheTables.add(tableName);
                     }
@@ -282,7 +282,7 @@ public class Main {
             String remarks = result.getString("REMARKS");
             boolean skip = remarks != null && remarks.contains("no_api");
             if (!skip) {
-                if ((include != null && include.contains(tableName)) || (exclude != null && !exclude.contains(tableName))) {
+                if ((include == null && exclude == null) || (include != null && include.contains(tableName)) || (exclude != null && !exclude.contains(tableName))) {
                     String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
                     File dir = new File(srcDirectory.trim(), "main/java/" + packageName.replaceAll("\\.", "\\/").trim() + "/rest/objects");
                     File javaFile = new File(dir, className + ".java");
