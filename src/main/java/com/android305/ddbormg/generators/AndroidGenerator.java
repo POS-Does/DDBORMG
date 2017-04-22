@@ -132,6 +132,7 @@ public class AndroidGenerator {
         sb.append("import java.sql.Time;\n");
         sb.append("import java.math.BigDecimal;\n");
 
+        sb.append("@SuppressWarnings(\"WeakerAccess\")\n");
         sb.append("public class " + className + "_ extends " + className + " implements Serializable {\n");
 
         // public ClassName_(BackgroundService service, {no defaults}) {
@@ -232,6 +233,7 @@ public class AndroidGenerator {
             sb.append("import java.math.BigDecimal;\n");
         }
 
+        sb.append("@SuppressWarnings(\"WeakerAccess\")\n");
         // public class ClassName extends {CachedObject|AndroidSQLObject} {
         sb.append("public class " + className + " extends " + (cached ? "CachedObject" : "AndroidSQLObject") + " implements Serializable {\n");
 
