@@ -310,7 +310,7 @@ public class AndroidGenerator {
             }
 
             // ClassName(BackgroundService service, JSONObject rawData) {
-            sb.append(className + "(BackgroundService service, JSONObject rawData) { super(service, " + className + ".TABLE_NAME, rawData); load(rawData);}\n");
+            sb.append(className + "(BackgroundService service, JSONObject rawData) { super(service, " + className + ".TABLE_NAME); load(rawData);}\n");
             sb.append('\n');
 
             // ClassName(BackgroundService service, {COLUMN_OBJECT_DEFINITIONS}) {
