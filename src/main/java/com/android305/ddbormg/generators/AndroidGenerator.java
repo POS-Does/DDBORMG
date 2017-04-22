@@ -497,7 +497,7 @@ public class AndroidGenerator {
                 sb.append("loaded = null;\n");
                 sb.append("SQLiteDatabase db = service.getPOSDb().getWritableDatabase();\n");
                 sb.append("db.execSQL(SQL_TRUNCATE_ENTRIES);\n");
-                sb.append("JSONObject response = service.requestEncryptedJSON(new CacheController().getAll" + className + "(), true);\n");
+                sb.append("JSONObject response = service.request(new CacheController().getAll" + className + "(), true);\n");
                 sb.append("Date now = new Date(System.currentTimeMillis());\n");
                 sb.append("JSONArray payload = response.getJSONArray(\"payload\");\n");
                 sb.append("db.beginTransaction();\n");
