@@ -33,7 +33,12 @@ public class Column {
     }
 
     public String getColumnType() {
-        return columnType;
+        switch (columnType) {
+            case "MEDIUMTEXT":
+                return "TEXT";
+            default:
+                return columnType;
+        }
     }
 
     public void setColumnType(String columnType) {
