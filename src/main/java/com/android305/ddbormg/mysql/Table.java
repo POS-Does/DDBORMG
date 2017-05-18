@@ -3,8 +3,12 @@ package com.android305.ddbormg.mysql;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Table {
 
@@ -57,6 +61,13 @@ public class Table {
 
             foreignKeys.put(fkName, fk);
         }
+
+        List<Map.Entry<String, ForeignKey>> entries = new ArrayList<>(foreignKeys.entrySet());
+        entries.sort(Comparator.comparing(Map.Entry::getKey));
+        foreignKeys = new LinkedHashMap<>();
+        for (Map.Entry<String, ForeignKey> entry : entries) {
+            foreignKeys.put(entry.getKey(), entry.getValue());
+        }
     }
 
     public void loadIndexes(DatabaseMetaData md) throws SQLException {
@@ -74,6 +85,13 @@ public class Table {
                 index.addColumn(columnName);
                 indexes.put(indexName, index);
             }
+        }
+
+        List<Map.Entry<String, Index>> entries = new ArrayList<>(indexes.entrySet());
+        entries.sort(Comparator.comparing(Map.Entry::getKey));
+        indexes = new LinkedHashMap<>();
+        for (Map.Entry<String, Index> entry : entries) {
+            indexes.put(entry.getKey(), entry.getValue());
         }
     }
 
