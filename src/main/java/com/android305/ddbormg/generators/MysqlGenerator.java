@@ -65,6 +65,7 @@ public class MysqlGenerator {
                         case "TIME":
                         case "DOUBLE":
                         case "DATETIME":
+                        case "TEXT":
                             sb.append(" ");
                             break;
                         case "TINYINT":
