@@ -1,5 +1,5 @@
 group = "com.android305.ddbormg"
-version '0.7.4-SNAPSHOT'
+version '0.7.4'
 
 apply plugin: 'java'
 apply plugin: 'java-library-distribution'
