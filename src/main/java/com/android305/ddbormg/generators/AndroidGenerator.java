@@ -510,7 +510,11 @@ public class AndroidGenerator {
                 sb.append("cv.put(" + className + "._ID, value.getId());\n");
                 sb.append("cv.put(" + className + "._CACHED, dateFormat.format(now));\n");
                 sb.append("cv.put(" + className + ".CREATED_TIME, dateFormat.format(value.getCreatedTime()));\n");
+                sb.append("if(value.getModifiedTime() != null) {\n");
                 sb.append("cv.put(" + className + ".MODIFIED_TIME, dateFormat.format(value.getModifiedTime()));\n");
+                sb.append("} else {\n");
+                sb.append("cv.put(" + className + ".MODIFIED_TIME, (String) null);\n");
+                sb.append("}\n");
 
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
@@ -555,8 +559,10 @@ public class AndroidGenerator {
                 sb.append("while (cursor.moveToNext()) {\n");
                 sb.append("int " + toLowerCamel(columns.get(0).getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + className + "._ID));\n");
                 sb.append("Timestamp createdTime = Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + className + ".CREATED_TIME)));\n");
-                sb.append("Timestamp modifiedTime = Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + className + ".MODIFIED_TIME)));\n");
-
+                sb.append("Timestamp modifiedTime = null;\n");
+                sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(" + className + ".MODIFIED_TIME))) {");
+                sb.append("modifiedTime = Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + className + ".MODIFIED_TIME)));\n");
+                sb.append("}\n");
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
                     if (!c.avoidCache()) {
