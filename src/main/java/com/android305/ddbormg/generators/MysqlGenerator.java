@@ -53,7 +53,7 @@ public class MysqlGenerator {
             sb.append("CREATE TABLE `" + t.getName() + "` (\n");
             sb.append("  `ID` int(11) NOT NULL AUTO_INCREMENT,\n");
             sb.append("  `CREATED_TIME` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n");
-            sb.append("  `MODIFIED_TIME` timestamp NOT NULL DEFAULT '1970-01-01 05:00:00' ON UPDATE CURRENT_TIMESTAMP,\n");
+            sb.append("  `MODIFIED_TIME` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,\n");
             for (Column c : t.getColumns().values()) {
                 if (!c.getColumnName().equals("ID") && !c.getColumnName().equals("CREATED_TIME") && !c.getColumnName().equals("MODIFIED_TIME")) {
                     sb.append("  `" + c.getColumnName() + "` " + c.getColumnType());
