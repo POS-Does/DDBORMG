@@ -505,13 +505,13 @@ public class AndroidGenerator {
                 sb.append("SimpleDateFormat dateFormat = new SimpleDateFormat(\"yyyy-MM-dd HH:mm:ss\", Locale.getDefault());\n");
                 sb.append("SimpleDateFormat timeFormat = new SimpleDateFormat(\"HH:mm:ss\", Locale.getDefault());\n");
                 sb.append("for (int i = 0; i < payload.length(); i++) {\n");
-                sb.append(className + " value = new " + className + "_(service, payload.getJSONObject(i));\n");
+                sb.append("JSONObject value = payload.getJSONObject(i);\n");
                 sb.append("ContentValues cv = new ContentValues();\n");
-                sb.append("cv.put(" + className + "._ID, value.getId());\n");
+                sb.append("cv.put(" + className + "._ID, value.getInt(ID));\n");
                 sb.append("cv.put(" + className + "._CACHED, dateFormat.format(now));\n");
-                sb.append("cv.put(" + className + ".CREATED_TIME, dateFormat.format(value.getCreatedTime()));\n");
-                sb.append("if(value.getModifiedTime() != null) {\n");
-                sb.append("cv.put(" + className + ".MODIFIED_TIME, dateFormat.format(value.getModifiedTime()));\n");
+                sb.append("cv.put(" + className + ".CREATED_TIME, dateFormat.format(value.getTimestamp(CREATED_TIME)));\n");
+                sb.append("if(value.getTimestamp(MODIFIED_TIME) != null) {\n");
+                sb.append("cv.put(" + className + ".MODIFIED_TIME, dateFormat.format(value.getTimestamp(MODIFIED_TIME)));\n");
                 sb.append("} else {\n");
                 sb.append("cv.put(" + className + ".MODIFIED_TIME, (String) null);\n");
                 sb.append("}\n");
@@ -519,8 +519,8 @@ public class AndroidGenerator {
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
                     if (!c.avoidCache()) {
-                        String getter = "value.get" + toUpperCamel(c.getColumnName()) + "()";
-                        sb.append("cv.put(" + className + "." + c.getColumnName() + ", " + getter);
+                        String getter = "value.get" + capitalize(c.getJavaClass()) + "(" + c.getColumnName() + ")";
+                        sb.append("cv.put(" + c.getColumnName() + ", " + getter);
                         switch (c.getJavaClass()) {
                             case "boolean":
                                 sb.append(" ? 1 : 0");
