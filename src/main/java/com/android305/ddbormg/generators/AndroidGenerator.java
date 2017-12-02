@@ -1,12 +1,10 @@
 package com.android305.ddbormg.generators;
 
 import com.android305.ddbormg.mysql.Column;
+import com.android305.ddbormg.mysql.ForeignKey;
+import com.android305.ddbormg.mysql.Table;
 import com.google.common.base.CaseFormat;
 
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.android305.ddbormg.utils.JavaUtils.capitalize;
@@ -16,7 +14,7 @@ import static com.android305.ddbormg.utils.JavaUtils.toUpperCamel;
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class AndroidGenerator {
 
-    public static String generateControllerClass(List<String> cachedTables) throws SQLException {
+    public static String generateControllerClass(List<String> cachedTables) {
         StringBuilder sb = new StringBuilder();
         sb.append("// Generated\n");
         sb.append("package com.android305.posdoes.rest.routes;\n");
@@ -37,7 +35,7 @@ public class AndroidGenerator {
         return sb.toString();
     }
 
-    public static String generateSqliteClass(List<String> cachedTables) throws SQLException {
+    public static String generateSqliteClass(List<String> cachedTables) {
         StringBuilder sb = new StringBuilder();
         sb.append("// Generated\n");
         sb.append("package com.android305.posdoes.service.sqlite;\n");
@@ -102,21 +100,10 @@ public class AndroidGenerator {
         return sb.toString();
     }
 
-    public static String generateUnderscoreClass(DatabaseMetaData md, String tableName, String className, boolean cached) throws SQLException {
+    public static String generateUnderscoreClass(Table table, String className, boolean cached) {
         StringBuilder sb = new StringBuilder();
-        ArrayList<Column> columns = new ArrayList<>();
+        List<Column> columns = table.getColumnList();
 
-        ResultSet r = md.getColumns(null, null, tableName, null);
-        while (r.next()) {
-            String columnName = r.getString("COLUMN_NAME");
-            String columnType = r.getString("TYPE_NAME");
-            int columnSize = r.getInt("COLUMN_SIZE");
-            boolean nullable = r.getInt("NULLABLE") == 1;
-            String defaultValue = r.getString("COLUMN_DEF");
-            String remarks = r.getString("REMARKS");
-
-            columns.add(new Column(tableName, columnName, columnType, columnSize, nullable, defaultValue, remarks));
-        }
         sb.append("// Generated\n");
 
         sb.append("package com.android305.posdoes.rest.objects;\n");
@@ -186,21 +173,10 @@ public class AndroidGenerator {
         return sb.toString();
     }
 
-    public static String generateClass(DatabaseMetaData md, String tableName, String className, boolean cached) throws SQLException {
+    public static String generateClass(Table table, String className, boolean cached) {
         StringBuilder sb = new StringBuilder();
-        ArrayList<Column> columns = new ArrayList<>();
+        List<Column> columns = table.getColumnList();
 
-        ResultSet r = md.getColumns(null, null, tableName, null);
-        while (r.next()) {
-            String columnName = r.getString("COLUMN_NAME");
-            String columnType = r.getString("TYPE_NAME");
-            int columnSize = r.getInt("COLUMN_SIZE");
-            boolean nullable = r.getInt("NULLABLE") == 1;
-            String defaultValue = r.getString("COLUMN_DEF");
-            String remarks = r.getString("REMARKS");
-            Column c = new Column(tableName, columnName, columnType, columnSize, nullable, defaultValue, remarks);
-            columns.add(c);
-        }
         sb.append("// Generated\n");
 
         sb.append("package com.android305.posdoes.rest.objects;\n");
@@ -241,7 +217,7 @@ public class AndroidGenerator {
         sb.append('\n');
 
         sb.append("/* Table Name */\n");
-        sb.append("public static final String TABLE_NAME = \"" + tableName + "\";\n");
+        sb.append("public static final String TABLE_NAME = \"" + table.getName() + "\";\n");
         sb.append('\n');
 
         // Column Tag Definitions
@@ -429,40 +405,50 @@ public class AndroidGenerator {
             sb.append("static class SQLiteHelper {\n");
             // public static final String SQL_CREATE_ENTRIES = {SQLite COLUMN DATA};
             {
-                sb.append("public static final String SQL_CREATE_ENTRIES = \"CREATE TABLE \" + " + className + ".TABLE_NAME + \" (\"\n");
-                sb.append(" + " + className + "._ID + \" INTEGER PRIMARY KEY,\"\n");
-                sb.append(" + " + className + "._CACHED + \" DATETIME,\"\n");
-                sb.append(" + " + className + ".CREATED_TIME + \" DATETIME,\"\n");
-                sb.append(" + " + className + ".MODIFIED_TIME + \" DATETIME,\"\n");
+                sb.append("        // @formatter:off\n");
+                sb.append("        public static final String SQL_CREATE_ENTRIES = \"CREATE TABLE " + table.getName() + " (\"\n");
+                sb.append("                + \"_id INTEGER PRIMARY KEY,\"\n");
+                sb.append("                + \"_CACHED DATETIME,\"\n");
+                sb.append("                + \"CREATED_TIME DATETIME,\"\n");
+                sb.append("                + \"MODIFIED_TIME DATETIME,\"\n");
 
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
                     if (!c.avoidCache()) {
-                        sb.append(" + " + className + "." + c.getColumnName() + " + \" " + c.getSQLiteClass());
-
-                        sb.append(",\"\n");
+                        // + "COLUMN_NAME TEXT,"
+                        sb.append("                + \"" + c.getColumnName() + " " + c.getSQLiteClass() + ",\"");
+                        sb.append('\n');
                     }
                 }
-                int lastComma = sb.toString().lastIndexOf(",");
-                sb.replace(lastComma, lastComma + 1, ");");
+                List<ForeignKey> foreignKeyList = table.getForeignKeyList();
+
+                for (ForeignKey fk : foreignKeyList) {
+                    // + "FOREIGN KEY(COLUMN_NAME) REFERENCES reference_table_name(REFERENCE_COLUMN_NAME),
+                    sb.append("                + \"FOREIGN KEY(" + fk.getColumnName() + ") REFERENCES " + fk.getReferencesTableName() + "(" + fk.getReferencesColumnName() + "),\"");
+                    sb.append('\n');
+                }
+
+                int lastComma = sb.toString().lastIndexOf(",\"\n");
+                sb.replace(lastComma, lastComma + 3, ");\"");
                 sb.append(";\n");
+                sb.append("        // @formatter:on\n\n");
             }
 
-            sb.append("public static final String SQL_DELETE_ENTRIES = \"DROP TABLE IF EXISTS \" + " + className + ".TABLE_NAME + \";\";\n");
-            sb.append("public static final String SQL_TRUNCATE_ENTRIES = \"DELETE FROM \" + " + className + ".TABLE_NAME + \";\";\n\n");
+            sb.append("public static final String SQL_DELETE_ENTRIES = \"DROP TABLE IF EXISTS \" + TABLE_NAME + \";\";\n");
+            sb.append("public static final String SQL_TRUNCATE_ENTRIES = \"DELETE FROM \" + TABLE_NAME + \";\";\n\n");
 
             // static final String[] projection = {COLUMN DATA};
             {
                 sb.append("static final String[] projection = {\n");
-                sb.append(className + "._ID,\n");
-                sb.append(className + "._CACHED,\n");
-                sb.append(className + ".CREATED_TIME,\n");
-                sb.append(className + ".MODIFIED_TIME,\n");
+                sb.append("_ID,\n");
+                sb.append("_CACHED,\n");
+                sb.append("CREATED_TIME,\n");
+                sb.append("MODIFIED_TIME,\n");
 
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
                     if (!c.avoidCache()) {
-                        sb.append(className + "." + c.getColumnName());
+                        sb.append(c.getColumnName());
                         sb.append(",");
                         sb.append('\n');
                     }
@@ -481,10 +467,10 @@ public class AndroidGenerator {
                 sb.append("SQLiteDatabase db = service.getPOSDb().getReadableDatabase();\n");
                 sb.append('\n');
 
-                sb.append("String selection = " + className + "._ID + \" = ?\";\n");
+                sb.append("String selection = _ID + \" = ?\";\n");
                 sb.append("String[] selectionArgs = {Integer.toString(id)};\n\n");
 
-                sb.append("Cursor cursor = db.query(" + className + ".TABLE_NAME, projection, selection, selectionArgs, null, null, null);\n");
+                sb.append("Cursor cursor = db.query(TABLE_NAME, projection, selection, selectionArgs, null, null, null);\n");
                 sb.append("List<" + className + "_> list = convertCursor(service, cursor);\n");
                 sb.append("if (list.size() > 0) return list.get(0);\n");
                 sb.append("throw new RuntimeException(\"Id `\" + id + \"` for table `\" + TABLE_NAME + \"` not found.\");\n");
@@ -507,13 +493,13 @@ public class AndroidGenerator {
                 sb.append("for (int i = 0; i < payload.length(); i++) {\n");
                 sb.append("JSONObject value = payload.getJSONObject(i);\n");
                 sb.append("ContentValues cv = new ContentValues();\n");
-                sb.append("cv.put(" + className + "._ID, value.getInt(ID));\n");
-                sb.append("cv.put(" + className + "._CACHED, dateFormat.format(now));\n");
-                sb.append("cv.put(" + className + ".CREATED_TIME, dateFormat.format(value.getTimestamp(CREATED_TIME)));\n");
+                sb.append("cv.put(_ID, value.getInt(ID));\n");
+                sb.append("cv.put(_CACHED, dateFormat.format(now));\n");
+                sb.append("cv.put(CREATED_TIME, dateFormat.format(value.getTimestamp(CREATED_TIME)));\n");
                 sb.append("if(value.getTimestamp(MODIFIED_TIME) != null) {\n");
-                sb.append("cv.put(" + className + ".MODIFIED_TIME, dateFormat.format(value.getTimestamp(MODIFIED_TIME)));\n");
+                sb.append("cv.put(MODIFIED_TIME, dateFormat.format(value.getTimestamp(MODIFIED_TIME)));\n");
                 sb.append("} else {\n");
-                sb.append("cv.put(" + className + ".MODIFIED_TIME, (String) null);\n");
+                sb.append("cv.put(MODIFIED_TIME, (String) null);\n");
                 sb.append("}\n");
 
                 for (int i = 3; i < columns.size(); i++) {
@@ -542,7 +528,7 @@ public class AndroidGenerator {
                     }
                 }
 
-                sb.append("db.insert(" + className + ".TABLE_NAME, null, cv);\n");
+                sb.append("db.insert(TABLE_NAME, null, cv);\n");
                 sb.append("}\n");
                 sb.append("db.setTransactionSuccessful();\n");
                 sb.append("} finally {\n");
@@ -557,11 +543,11 @@ public class AndroidGenerator {
                 sb.append("static List<" + className + "_> convertCursor(BackgroundService service, Cursor cursor) {\n");
                 sb.append("ArrayList<" + className + "_> list = new ArrayList<>();\n");
                 sb.append("while (cursor.moveToNext()) {\n");
-                sb.append("int " + toLowerCamel(columns.get(0).getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + className + "._ID));\n");
-                sb.append("Timestamp createdTime = Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + className + ".CREATED_TIME)));\n");
+                sb.append("int " + toLowerCamel(columns.get(0).getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(_ID));\n");
+                sb.append("Timestamp createdTime = Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(CREATED_TIME)));\n");
                 sb.append("Timestamp modifiedTime = null;\n");
-                sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(" + className + ".MODIFIED_TIME))) {");
-                sb.append("modifiedTime = Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + className + ".MODIFIED_TIME)));\n");
+                sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(MODIFIED_TIME))) {");
+                sb.append("modifiedTime = Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(MODIFIED_TIME)));\n");
                 sb.append("}\n");
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
@@ -569,52 +555,52 @@ public class AndroidGenerator {
                         switch (c.getJavaClass()) {
                             case "int":
                             case "String":
-                                sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = cursor." + c.getSQLiteGetter() + "(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));\n");
+                                sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = cursor." + c.getSQLiteGetter() + "(cursor.getColumnIndexOrThrow(" + c.getColumnName() + "));\n");
                                 break;
                             case "Integer":
                             case "Double":
                                 sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = null;\n");
-                                sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "))) {");
-                                sb.append(toLowerCamel(c.getColumnName()) + " = cursor." + c.getSQLiteGetter() + "(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));");
+                                sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(" + c.getColumnName() + "))) {");
+                                sb.append(toLowerCamel(c.getColumnName()) + " = cursor." + c.getSQLiteGetter() + "(cursor.getColumnIndexOrThrow(" + c.getColumnName() + "));");
                                 sb.append("}\n");
                                 break;
                             case "boolean":
-                                sb.append("boolean " + toLowerCamel(c.getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + ")) == 1;\n");
+                                sb.append("boolean " + toLowerCamel(c.getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + c.getColumnName() + ")) == 1;\n");
                                 break;
                             case "Boolean":
                                 sb.append("Boolean " + toLowerCamel(c.getColumnName()) + " = null;\n");
-                                sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "))) {");
-                                sb.append(toLowerCamel(c.getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + ")) == 1;");
+                                sb.append("if(!cursor.isNull(cursor.getColumnIndexOrThrow(" + c.getColumnName() + "))) {");
+                                sb.append(toLowerCamel(c.getColumnName()) + " = cursor.getInt(cursor.getColumnIndexOrThrow(" + c.getColumnName() + ")) == 1;");
                                 sb.append("}\n");
                                 break;
                             case "Time":
                             case "Timestamp":
                             case "Date":
                                 if (c.nullable()) {
-                                    sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));\n");
+                                    sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + c.getColumnName() + "));\n");
                                     sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = null;\n");
                                     sb.append("if(" + toLowerCamel(c.getColumnName()) + "Val != null) {\n");
                                     sb.append(toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(" + toLowerCamel(c.getColumnName()) + "Val);\n");
                                     sb.append("}\n");
                                 } else {
-                                    sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c
+                                    sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + c
                                             .getColumnName() + ")));\n");
                                 }
                                 break;
                             case "BigDecimal":
                                 if (c.nullable()) {
-                                    sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));\n");
+                                    sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + c.getColumnName() + "));\n");
                                     sb.append("BigDecimal " + toLowerCamel(c.getColumnName()) + " = null;\n");
                                     sb.append("if(" + toLowerCamel(c.getColumnName()) + "Val != null) {\n");
                                     sb.append(toLowerCamel(c.getColumnName()) + " = new BigDecimal(" + toLowerCamel(c.getColumnName()) + "Val);\n");
                                     sb.append("}\n");
                                 } else {
-                                    sb.append("BigDecimal " + toLowerCamel(c.getColumnName()) + " = new BigDecimal(cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + ")));\n");
+                                    sb.append("BigDecimal " + toLowerCamel(c.getColumnName()) + " = new BigDecimal(cursor.getString(cursor.getColumnIndexOrThrow(" + c.getColumnName() + ")));\n");
                                 }
                                 break;
                             case "JSONObject":
                             case "JSONArray":
-                                sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + className + "." + c.getColumnName() + "));\n");
+                                sb.append("String " + toLowerCamel(c.getColumnName()) + "Val = cursor.getString(cursor.getColumnIndexOrThrow(" + c.getColumnName() + "));\n");
                                 sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = null;\n");
                                 sb.append("if(" + toLowerCamel(c.getColumnName()) + "Val != null) {\n");
                                 sb.append(toLowerCamel(c.getColumnName()) + " = new " + c.getJavaClass() + "(" + toLowerCamel(c.getColumnName()) + "Val);\n");
@@ -636,7 +622,7 @@ public class AndroidGenerator {
                 }
                 sb.append(");\n");
 
-                sb.append("value.setCached(Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + className + "._CACHED))));\n");
+                sb.append("value.setCached(Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(_CACHED))));\n");
                 sb.append("list.add(value);\n");
                 sb.append("}\n");
                 sb.append(" cursor.close();\n");

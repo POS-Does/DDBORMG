@@ -180,17 +180,22 @@ public class Main {
             boolean skip = remarks != null && remarks.contains("no_api");
             if (!skip) {
                 if ((include == null && exclude == null) || (include != null && include.contains(tableName)) || (exclude != null && !exclude.contains(tableName))) {
+                    Table t = new Table(tableName, remarks);
+                    t.loadColumns(md);
                     if (cached) {
                         cacheTables.add(tableName);
+                        System.out.println("Loading table `" + t.getName() + "`");
+                        t.loadForeignKeys(md);
+                        t.loadIndexes(md);
                     }
                     String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
                     File dir = new File("app/src/main/java/com/android305/posdoes/rest/objects");
                     File javaFile = new File(dir, className + ".java");
                     File underscoreFile = new File(dir, className + "_.java");
                     System.out.println("Generating Class `" + tableName + "`...");
-                    generateFile(javaFile, AndroidGenerator.generateClass(md, tableName, className, cached), false, overwrite);
+                    generateFile(javaFile, AndroidGenerator.generateClass(t, className, cached), false, overwrite);
                     System.out.println("Generating Class `" + tableName + "_`...");
-                    generateFile(underscoreFile, AndroidGenerator.generateUnderscoreClass(md, tableName, className, cached), true, overwriteUnderscore);
+                    generateFile(underscoreFile, AndroidGenerator.generateUnderscoreClass(t, className, cached), true, overwriteUnderscore);
                 }
             }
         }

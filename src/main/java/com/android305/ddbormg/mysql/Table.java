@@ -99,8 +99,16 @@ public class Table {
         return columns;
     }
 
+    public List<Column> getColumnList() {
+        return new ArrayList<>(columns.values());
+    }
+
     public HashMap<String, ForeignKey> getForeignKeys() {
         return foreignKeys;
+    }
+
+    public List<ForeignKey> getForeignKeyList() {
+        return new ArrayList<>(foreignKeys.values());
     }
 
     public HashMap<String, Index> getIndexes() {
