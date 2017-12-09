@@ -189,6 +189,7 @@ public class AndroidGenerator {
             sb.append("import android.database.Cursor;\n");
             sb.append("import android.database.sqlite.SQLiteDatabase;\n");
             sb.append("import android.util.Log;\n");
+            sb.append("import android.util.SparseArray;\n");
 
             sb.append("import com.android305.posdoes.rest.exceptions.CompanyException;\n");
             sb.append("import com.android305.posdoes.rest.exceptions.DeviceException;\n");
@@ -458,11 +459,14 @@ public class AndroidGenerator {
                 sb.append("};\n\n");
             }
 
+            sb.append("static SparseArray<" + className + "_> cached = new SparseArray<>();\n");
+
             sb.append("public static Date loaded = null;\n\n");
 
             // public static ClassName_ getClassNameById(BackgroundService service, Integer id) {
             {
                 sb.append("public static " + className + "_ get" + className + "ById(BackgroundService service, Integer id) {\n");
+                sb.append("if(cached.get(id) != null) return cached.get(id);\n");
                 sb.append("Log.v(TAG, \"Retrieved \" + TABLE_NAME + \" (\" + id + \")\");\n");
                 sb.append("SQLiteDatabase db = service.getPOSDb().getReadableDatabase();\n");
                 sb.append('\n');
@@ -480,6 +484,7 @@ public class AndroidGenerator {
             // public static void loadAll(BackgroundService service) throws DeviceException, CompanyException, ANError {
             {
                 sb.append("public static void loadAll(BackgroundService service) throws DeviceException, CompanyException, ANError {\n");
+                sb.append("cached.clear();\n");
                 sb.append("loaded = null;\n");
                 sb.append("SQLiteDatabase db = service.getPOSDb().getWritableDatabase();\n");
                 sb.append("db.execSQL(SQL_TRUNCATE_ENTRIES);\n");
@@ -583,8 +588,7 @@ public class AndroidGenerator {
                                     sb.append(toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(" + toLowerCamel(c.getColumnName()) + "Val);\n");
                                     sb.append("}\n");
                                 } else {
-                                    sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + c
-                                            .getColumnName() + ")));\n");
+                                    sb.append(c.getJavaClass() + " " + toLowerCamel(c.getColumnName()) + " = " + c.getJavaClass() + ".valueOf(cursor.getString(cursor.getColumnIndexOrThrow(" + c.getColumnName() + ")));\n");
                                 }
                                 break;
                             case "BigDecimal":
@@ -623,6 +627,7 @@ public class AndroidGenerator {
                 sb.append(");\n");
 
                 sb.append("value.setCached(Timestamp.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(_CACHED))));\n");
+                sb.append("cached.put(id, value);\n");
                 sb.append("list.add(value);\n");
                 sb.append("}\n");
                 sb.append(" cursor.close();\n");
