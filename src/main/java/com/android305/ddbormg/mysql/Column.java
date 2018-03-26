@@ -9,6 +9,7 @@ import java.util.HashSet;
 public class Column {
 
     public final static String REMARK_NO_CACHE = "no_cache";
+    public final static String REMARK_EXCLUDE_INSERT = "exclude_insert";
 
     private String tableName;
 
@@ -184,5 +185,15 @@ public class Column {
             default:
                 throw new RuntimeException("Fix it felix. Unsupported column `" + columnName + "` in table `" + tableName + "`");
         }
+    }
+
+    public boolean insertDetail() {
+        switch (getColumnName()) {
+            // don't update/insert times
+            case "CREATED_TIME":
+            case "MODIFIED_TIME":
+                return false;
+        }
+        return !hasRemark(REMARK_EXCLUDE_INSERT);
     }
 }

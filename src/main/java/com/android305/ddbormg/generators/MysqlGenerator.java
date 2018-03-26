@@ -206,6 +206,9 @@ public class MysqlGenerator {
         sb.append("--\n\n");
 
         sb.append("USE `posdb`;\n\n");
+
+        sb.append(truncateTables(company, permission, userType, user));
+
         sb.append(generateInsert(company, connection, "WHERE ID = 1"));
         sb.append(generateInsert(permission, connection, null));
         sb.append(generateInsert(userType, connection, "WHERE ID = 1 OR ID = 2"));
@@ -280,6 +283,9 @@ public class MysqlGenerator {
         sb.append("--\n\n");
 
         sb.append("USE `posdb`;\n\n");
+
+        sb.append(truncateTables(majorCategory, menuCategory, menuModifierGroup, menuModifierPage, menuModifierPageByGroup, menuModifier, menuItemGroup, menuItem));
+
         sb.append(generateInsert(majorCategory, connection, null));
         sb.append(generateInsert(menuCategory, connection, null));
         sb.append(generateInsert(menuModifierGroup, connection, null));
@@ -295,13 +301,25 @@ public class MysqlGenerator {
         return sb.toString();
     }
 
+    private static String truncateTables(Table... tables) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SET FOREIGN_KEY_CHECKS=0;\n");
+        for (Table table : tables) {
+            sb.append("TRUNCATE TABLE `" + table.getName() + "`;\n");
+        }
+        sb.append("SET FOREIGN_KEY_CHECKS=1;\n\n");
+        return sb.toString();
+    }
+
     private static String generateInsert(Table table, Connection connection, String where) throws SQLException {
         StringBuilder sb = new StringBuilder();
 
         sb.append("INSERT INTO `" + table.getName() + "` (");
 
         for (Column c : table.getColumns().values()) {
-            sb.append("`" + c.getColumnName() + "`,");
+            if (c.insertDetail()) {
+                sb.append("`" + c.getColumnName() + "`,");
+            }
         }
         int lastComma = sb.toString().lastIndexOf(",");
         sb.replace(lastComma, lastComma + 1, ") VALUES \n");
@@ -316,20 +334,22 @@ public class MysqlGenerator {
         while (rs.next()) {
             sb.append("(");
             for (Column c : table.getColumns().values()) {
-                switch (c.getColumnType()) {
-                    case "INT":
-                    case "TINYINT":
-                    case "BIT":
-                        sb.append(rs.getString(c.getColumnName()) + ",");
-                        break;
-                    default:
-                        String value = rs.getString(c.getColumnName());
-                        if (value == null) {
-                            sb.append("NULL,");
-                        } else {
-                            sb.append("'" + value.replace("'", "\\\'") + "',");
-                        }
-                        break;
+                if (c.insertDetail()) {
+                    switch (c.getColumnType()) {
+                        case "INT":
+                        case "TINYINT":
+                        case "BIT":
+                            sb.append(rs.getString(c.getColumnName()) + ",");
+                            break;
+                        default:
+                            String value = rs.getString(c.getColumnName());
+                            if (value == null) {
+                                sb.append("NULL,");
+                            } else {
+                                sb.append("'" + value.replace("'", "\\\'") + "',");
+                            }
+                            break;
+                    }
                 }
             }
             lastComma = sb.toString().lastIndexOf(",");
