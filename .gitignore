@@ -5,6 +5,6 @@ gradle.properties
 .DS_Store
 *Thumbs.db*
 *.iml
-repositories.gradle
 app/
 out/
+db_schema/

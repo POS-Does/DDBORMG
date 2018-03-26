@@ -1,0 +1,41 @@
+apply plugin: 'maven-publish'
+
+def s3repoBaseUrl = 's3://posdoes-maven'
+
+repositories {
+    maven {
+        name "s3RepoSnapshots"
+        url "$s3repoBaseUrl/snapshots"
+        credentials(AwsCredentials) {
+            accessKey awsAccessKey
+            secretKey awsSecretKey
+        }
+    }
+    maven {
+        name "s3RepoReleases"
+        url "$s3repoBaseUrl/releases"
+        credentials(AwsCredentials) {
+            accessKey awsAccessKey
+            secretKey awsSecretKey
+        }
+    }
+}
+
+task sourceJar(type: Jar) {
+    classifier "sources"
+    from sourceSets.main.allSource
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact sourceJar // Publish the output of the sourceJar task
+            artifact source: sourceJar, classifier: 'src', extension: 'jar'
+        }
+    }
+    repositories {
+        add version.endsWith('-SNAPSHOT') ? project.repositories.s3RepoSnapshots : project.repositories.s3RepoReleases
+    }
+}
