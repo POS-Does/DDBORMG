@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android305.ddbormg.mysql.Column.REMARK_NO_CACHE;
+
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class RestGenerator {
 
@@ -24,15 +26,9 @@ public class RestGenerator {
 
             ResultSet r = md.getColumns(null, null, c, null);
             while (r.next()) {
-                String columnName = r.getString("COLUMN_NAME");
-                String columnType = r.getString("TYPE_NAME");
-                int columnSize = r.getInt("COLUMN_SIZE");
-                boolean nullable = r.getInt("NULLABLE") == 1;
-                String defaultValue = r.getString("COLUMN_DEF");
-                String remarks = r.getString("REMARKS");
-                Column col = new Column(c, columnName, columnType, columnSize, nullable, defaultValue, remarks);
+                Column col = new Column(c, r);
 
-                if (!col.avoidCache())
+                if (!col.hasRemark(REMARK_NO_CACHE))
                     columns.add(col.getColumnName());
             }
 

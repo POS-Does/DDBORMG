@@ -1,8 +1,14 @@
 package com.android305.ddbormg.mysql;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashSet;
 
 public class Column {
+
+    public final static String REMARK_NO_CACHE = "no_cache";
 
     private String tableName;
 
@@ -12,24 +18,23 @@ public class Column {
     private boolean nullable;
     private String defaultValue;
     private String remarks;
+    private HashSet<String> remarksSet;
 
-    public Column(String tableName, String columnName, String columnType, int columnSize, boolean nullable, String defaultValue, String remarks) {
+    public Column(String tableName, ResultSet r) throws SQLException {
         this.tableName = tableName;
 
-        this.columnName = columnName;
-        this.columnType = columnType;
-        this.columnSize = columnSize;
-        this.nullable = nullable;
-        this.defaultValue = defaultValue;
-        this.remarks = remarks;
+        columnName = r.getString("COLUMN_NAME");
+        columnType = r.getString("TYPE_NAME");
+        columnSize = r.getInt("COLUMN_SIZE");
+        nullable = r.getInt("NULLABLE") == 1;
+        defaultValue = r.getString("COLUMN_DEF");
+        remarks = r.getString("REMARKS");
+        if (remarks != null)
+            remarksSet = new HashSet<>(Arrays.asList(remarks.split("\\|")));
     }
 
     public String getColumnName() {
         return columnName;
-    }
-
-    public void setColumnName(String columnName) {
-        this.columnName = columnName;
     }
 
     public String getColumnType() {
@@ -41,24 +46,12 @@ public class Column {
         }
     }
 
-    public void setColumnType(String columnType) {
-        this.columnType = columnType;
-    }
-
     public int getColumnSize() {
         return columnSize;
     }
 
-    public void setColumnSize(int columnSize) {
-        this.columnSize = columnSize;
-    }
-
     public boolean nullable() {
         return nullable;
-    }
-
-    public void setNullable(boolean nullable) {
-        this.nullable = nullable;
     }
 
     public String getDefaultValue() {
@@ -73,7 +66,7 @@ public class Column {
             case "DOUBLE":
                 return defaultValue + ';';
             case "VARCHAR":
-                if (remarks != null && remarks.contains("BigDecimal")) {
+                if (hasRemark("BigDecimal")) {
                     BigDecimal bd = new BigDecimal(defaultValue);
                     if (bd.compareTo(BigDecimal.ZERO) == 0) {
                         return "BigDecimal.ZERO;";
@@ -105,21 +98,12 @@ public class Column {
         }
     }
 
-    public void setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
-    }
-
-    public String getRemarks() {
+    public String getRawRemarks() {
         return remarks;
     }
 
-    public boolean avoidCache() {
-        return getRemarks() != null && getRemarks().contains("no_cache");
-
-    }
-
-    public void setRemarks(String remarks) {
-        this.remarks = remarks;
+    public boolean hasRemark(String remark) {
+        return remarks != null && remarksSet.contains(remark);
     }
 
     public String getJavaClass() {
@@ -129,7 +113,7 @@ public class Column {
             case "DOUBLE":
                 return nullable ? "Double" : "double";
             case "VARCHAR":
-                if (remarks != null && remarks.contains("BigDecimal")) {
+                if (hasRemark("BigDecimal")) {
                     return "BigDecimal";
                 }
             case "TEXT":
@@ -141,12 +125,10 @@ public class Column {
             case "TIME":
                 return "Time";
             case "JSON":
-                if (remarks != null) {
-                    if (remarks.contains("JSONObject")) {
-                        return "JSONObject";
-                    } else if (remarks.contains("JSONArray")) {
-                        return "JSONArray";
-                    }
+                if (hasRemark("JSONObject")) {
+                    return "JSONObject";
+                } else if (hasRemark("JSONArray")) {
+                    return "JSONArray";
                 }
                 throw new RuntimeException("Fix it felix. Column `" + columnName + "` in table `" + tableName + "` is missing remarks to get type of json");
             case "BIT":

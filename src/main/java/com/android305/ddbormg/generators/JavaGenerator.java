@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import static com.android305.ddbormg.mysql.Column.REMARK_NO_CACHE;
 import static com.android305.ddbormg.utils.JavaUtils.capitalize;
 import static com.android305.ddbormg.utils.JavaUtils.toLowerCamel;
 import static com.android305.ddbormg.utils.JavaUtils.toUpperCamel;
@@ -20,14 +21,7 @@ public class JavaGenerator {
 
         ResultSet r = md.getColumns(null, null, tableName, null);
         while (r.next()) {
-            String columnName = r.getString("COLUMN_NAME");
-            String columnType = r.getString("TYPE_NAME");
-            int columnSize = r.getInt("COLUMN_SIZE");
-            boolean nullable = r.getInt("NULLABLE") == 1;
-            String defaultValue = r.getString("COLUMN_DEF");
-            String remarks = r.getString("REMARKS");
-
-            columns.add(new Column(tableName, columnName, columnType, columnSize, nullable, defaultValue, remarks));
+            columns.add(new Column(tableName, r));
         }
         sb.append("// Generated\n");
 
@@ -102,13 +96,7 @@ public class JavaGenerator {
 
         ResultSet r = md.getColumns(null, null, tableName, null);
         while (r.next()) {
-            String columnName = r.getString("COLUMN_NAME");
-            String columnType = r.getString("TYPE_NAME");
-            int columnSize = r.getInt("COLUMN_SIZE");
-            boolean nullable = r.getInt("NULLABLE") == 1;
-            String defaultValue = r.getString("COLUMN_DEF");
-            String remarks = r.getString("REMARKS");
-            Column c = new Column(tableName, columnName, columnType, columnSize, nullable, defaultValue, remarks);
+            Column c = new Column(tableName, r);
             columns.add(c);
         }
         sb.append("// Generated\n");
@@ -245,7 +233,7 @@ public class JavaGenerator {
             for (int i = 3; i < columns.size(); i++) {
                 Column c = columns.get(i);
                 String getter = "get";
-                if (c.avoidCache())
+                if (c.hasRemark(REMARK_NO_CACHE))
                     getter = "opt";
                 sb.append("set" + toUpperCamel(c.getColumnName()) + "(mRawData." + getter + capitalize(c.getJavaClass()) + "(" + c.getColumnName() + "));\n");
             }

@@ -26,6 +26,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static com.android305.ddbormg.mysql.Table.REMARK_CACHE;
+import static com.android305.ddbormg.mysql.Table.REMARK_NO_API;
+
 public class Main {
 
     @Parameters(commandDescription = "Generate Android ORM classes")
@@ -91,6 +94,7 @@ public class Main {
     @Parameter(names = {"-h", "--host"}, description = "Database host", required = true)
     private String dbHost;
 
+    @SuppressWarnings("FieldCanBeLocal")
     @Parameter(names = {"--port"}, description = "Database port")
     private String dbPort = "3306";
 
@@ -174,27 +178,24 @@ public class Main {
         ResultSet result = md.getTables(null, null, null, null);
 
         while (result.next()) {
-            String tableName = result.getString("TABLE_NAME");
-            String remarks = result.getString("REMARKS");
-            boolean cached = remarks != null && remarks.contains("cache");
-            boolean skip = remarks != null && remarks.contains("no_api");
-            if (!skip) {
-                if ((include == null && exclude == null) || (include != null && include.contains(tableName)) || (exclude != null && !exclude.contains(tableName))) {
-                    Table t = new Table(tableName, remarks);
+            Table t = new Table(result);
+            if (!t.hasRemark(REMARK_NO_API)) {
+                if ((include == null && exclude == null) || (include != null && include.contains(t.getName())) || (exclude != null && !exclude.contains(t.getName()))) {
+                    boolean cached = t.hasRemark(REMARK_CACHE);
                     t.loadColumns(md);
                     if (cached) {
-                        cacheTables.add(tableName);
+                        cacheTables.add(t.getName());
                         System.out.println("Loading table `" + t.getName() + "`");
                         t.loadForeignKeys(md);
                         t.loadIndexes(md);
                     }
-                    String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
+                    String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, t.getName());
                     File dir = new File("app/src/main/java/com/android305/posdoes/rest/objects");
                     File javaFile = new File(dir, className + ".java");
                     File underscoreFile = new File(dir, className + "_.java");
-                    System.out.println("Generating Class `" + tableName + "`...");
+                    System.out.println("Generating Class `" + t.getName() + "`...");
                     generateFile(javaFile, AndroidGenerator.generateClass(t, className, cached), false, overwrite);
-                    System.out.println("Generating Class `" + tableName + "_`...");
+                    System.out.println("Generating Class `" + t.getName() + "_`...");
                     generateFile(underscoreFile, AndroidGenerator.generateUnderscoreClass(t, className, cached), true, overwriteUnderscore);
                 }
             }
@@ -215,10 +216,9 @@ public class Main {
         ArrayList<String> cacheTables = new ArrayList<>();
         ResultSet result = md.getTables(null, null, null, null);
         while (result.next()) {
-            String tableName = result.getString("TABLE_NAME");
-            String remarks = result.getString("REMARKS");
-            if (remarks != null && remarks.contains("cache")) {
-                cacheTables.add(tableName);
+            Table t = new Table(result);
+            if (t.hasRemark(REMARK_CACHE)) {
+                cacheTables.add(t.getName());
             }
         }
         File dir = new File("src/v1/routes/");
@@ -232,9 +232,7 @@ public class Main {
         ResultSet result = md.getTables(null, null, null, null);
         ArrayList<Table> tables = new ArrayList<>();
         while (result.next()) {
-            String tableName = result.getString("TABLE_NAME");
-            String remarks = result.getString("REMARKS");
-            Table t = new Table(tableName, remarks);
+            Table t = new Table(result);
             System.out.println("Loading table `" + t.getName() + "`");
             t.loadColumns(md);
             t.loadForeignKeys(md);
@@ -283,19 +281,17 @@ public class Main {
         DatabaseMetaData md = mConnection.getMetaData();
         ResultSet result = md.getTables(null, null, null, null);
         while (result.next()) {
-            String tableName = result.getString("TABLE_NAME");
-            String remarks = result.getString("REMARKS");
-            boolean skip = remarks != null && remarks.contains("no_api");
-            if (!skip) {
-                if ((include == null && exclude == null) || (include != null && include.contains(tableName)) || (exclude != null && !exclude.contains(tableName))) {
-                    String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
+            Table t = new Table(result);
+            if (!t.hasRemark(REMARK_NO_API)) {
+                if ((include == null && exclude == null) || (include != null && include.contains(t.getName())) || (exclude != null && !exclude.contains(t.getName()))) {
+                    String className = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, t.getName());
                     File dir = new File(srcDirectory.trim(), "main/java/" + packageName.replaceAll("\\.", "\\/").trim() + "/rest/objects");
                     File javaFile = new File(dir, className + ".java");
                     File underscoreFile = new File(dir, className + "_.java");
-                    System.out.println("Generating Class `" + tableName + "`...");
-                    generateFile(javaFile, JavaGenerator.generateClass(packageName, md, tableName, className), false, overwrite);
-                    System.out.println("Generating Class `" + tableName + "_`...");
-                    generateFile(underscoreFile, JavaGenerator.generateUnderscoreClass(packageName, md, tableName, className), true, overwriteUnderscore);
+                    System.out.println("Generating Class `" + t.getName() + "`...");
+                    generateFile(javaFile, JavaGenerator.generateClass(packageName, md, t.getName(), className), false, overwrite);
+                    System.out.println("Generating Class `" + t.getName() + "_`...");
+                    generateFile(underscoreFile, JavaGenerator.generateUnderscoreClass(packageName, md, t.getName(), className), true, overwriteUnderscore);
                 }
             }
         }

@@ -7,6 +7,7 @@ import com.google.common.base.CaseFormat;
 
 import java.util.List;
 
+import static com.android305.ddbormg.mysql.Column.REMARK_NO_CACHE;
 import static com.android305.ddbormg.utils.JavaUtils.capitalize;
 import static com.android305.ddbormg.utils.JavaUtils.toLowerCamel;
 import static com.android305.ddbormg.utils.JavaUtils.toUpperCamel;
@@ -319,7 +320,7 @@ public class AndroidGenerator {
             for (int i = 3; i < columns.size(); i++) {
                 Column c = columns.get(i);
                 String getter = "get";
-                if (c.avoidCache())
+                if (c.hasRemark(REMARK_NO_CACHE))
                     getter = "opt";
                 sb.append("set" + toUpperCamel(c.getColumnName()) + "(mRawData." + getter + capitalize(c.getJavaClass()) + "(" + c.getColumnName() + "));\n");
             }
@@ -338,7 +339,7 @@ public class AndroidGenerator {
                 // Getter
                 {
                     sb.append("public " + c.getJavaClass() + " get" + upper + "() { \n");
-                    if (cached && c.avoidCache())
+                    if (cached && c.hasRemark(REMARK_NO_CACHE))
                         sb.append("if (isCached()) throw new RuntimeException(\"Cached object, this field is not cached\");\n");
                     sb.append("return " + camel + ";}\n");
                     sb.append('\n');
@@ -415,7 +416,7 @@ public class AndroidGenerator {
 
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
-                    if (!c.avoidCache()) {
+                    if (!c.hasRemark(REMARK_NO_CACHE)) {
                         // + "COLUMN_NAME TEXT,"
                         sb.append("                + \"" + c.getColumnName() + " " + c.getSQLiteClass() + ",\"");
                         sb.append('\n');
@@ -448,7 +449,7 @@ public class AndroidGenerator {
 
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
-                    if (!c.avoidCache()) {
+                    if (!c.hasRemark(REMARK_NO_CACHE)) {
                         sb.append(c.getColumnName());
                         sb.append(",");
                         sb.append('\n');
@@ -509,7 +510,7 @@ public class AndroidGenerator {
 
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
-                    if (!c.avoidCache()) {
+                    if (!c.hasRemark(REMARK_NO_CACHE)) {
                         String getter = "value.get" + capitalize(c.getJavaClass()) + "(" + c.getColumnName() + ")";
                         sb.append("cv.put(" + c.getColumnName() + ", " + getter);
                         switch (c.getJavaClass()) {
@@ -556,7 +557,7 @@ public class AndroidGenerator {
                 sb.append("}\n");
                 for (int i = 3; i < columns.size(); i++) {
                     Column c = columns.get(i);
-                    if (!c.avoidCache()) {
+                    if (!c.hasRemark(REMARK_NO_CACHE)) {
                         switch (c.getJavaClass()) {
                             case "int":
                             case "String":
@@ -617,7 +618,7 @@ public class AndroidGenerator {
                 }
                 sb.append(className + "_ value = new " + className + "_(service");
                 for (Column c : columns) {
-                    if (!c.avoidCache()) {
+                    if (!c.hasRemark(REMARK_NO_CACHE)) {
                         sb.append(", " + toLowerCamel(c.getColumnName()));
                     } else {
                         String defaultValue = c.getJavaDefaultValue();

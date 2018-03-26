@@ -3,47 +3,33 @@ package com.android305.ddbormg.mysql;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Table {
 
+    public final static String REMARK_NO_API = "no_api";
+    public final static String REMARK_CACHE = "cache";
+
     private String name;
     private String remarks;
+    private HashSet<String> remarksSet;
 
     private LinkedHashMap<String, Column> columns;
     private LinkedHashMap<String, ForeignKey> foreignKeys;
     private LinkedHashMap<String, Index> indexes;
 
-    public Table(String name, String remarks) {
-        this.name = name;
-        this.remarks = remarks;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getRemarks() {
-        return remarks;
+    public Table(ResultSet result) throws SQLException {
+        this.name = result.getString("TABLE_NAME");
+        this.remarks = result.getString("REMARKS");
+        this.remarksSet = new HashSet<>(Arrays.asList(remarks.split("\\|")));
     }
 
     public void loadColumns(DatabaseMetaData md) throws SQLException {
         columns = new LinkedHashMap<>();
         ResultSet r = md.getColumns(null, null, name, null);
         while (r.next()) {
-            String columnName = r.getString("COLUMN_NAME");
-            String columnType = r.getString("TYPE_NAME");
-            int columnSize = r.getInt("COLUMN_SIZE");
-            boolean nullable = r.getInt("NULLABLE") == 1;
-            String defaultValue = r.getString("COLUMN_DEF");
-            String remarks = r.getString("REMARKS");
-            Column c = new Column(name, columnName, columnType, columnSize, nullable, defaultValue, remarks);
-            columns.put(columnName, c);
+            Column c = new Column(name, r);
+            columns.put(c.getColumnName(), c);
         }
     }
 
@@ -51,15 +37,8 @@ public class Table {
         foreignKeys = new LinkedHashMap<>();
         ResultSet rs = md.getImportedKeys(null, null, name);
         while (rs.next()) {
-
-            String fkName = rs.getString("FK_NAME");
-            String fkColumnName = rs.getString("FKCOLUMN_NAME");
-            String fkReferencesTableName = rs.getString("PKTABLE_NAME");
-            String fkReferencesColumnName = rs.getString("PKCOLUMN_NAME");
-
-            ForeignKey fk = new ForeignKey(fkName, fkColumnName, fkReferencesTableName, fkReferencesColumnName);
-
-            foreignKeys.put(fkName, fk);
+            ForeignKey fk = new ForeignKey(rs);
+            foreignKeys.put(fk.getName(), fk);
         }
 
         List<Map.Entry<String, ForeignKey>> entries = new ArrayList<>(foreignKeys.entrySet());
@@ -113,5 +92,17 @@ public class Table {
 
     public HashMap<String, Index> getIndexes() {
         return indexes;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getRawRemarks() {
+        return remarks;
+    }
+
+    public boolean hasRemark(String remark) {
+        return remark != null && remarksSet.contains(remark);
     }
 }

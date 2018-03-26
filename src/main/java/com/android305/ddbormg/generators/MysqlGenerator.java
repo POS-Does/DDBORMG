@@ -91,8 +91,8 @@ public class MysqlGenerator {
                     if (c.getDefaultValue() != null) {
                         sb.append("DEFAULT '" + c.getDefaultValue() + "' ");
                     }
-                    if (c.getRemarks() != null && !c.getRemarks().equals("")) {
-                        sb.append("COMMENT '" + c.getRemarks() + "' ");
+                    if (c.getRawRemarks() != null && !c.getRawRemarks().equals("")) {
+                        sb.append("COMMENT '" + c.getRawRemarks() + "' ");
                     }
 
                     int lastSpace = sb.toString().lastIndexOf(" ");
@@ -100,8 +100,8 @@ public class MysqlGenerator {
                 }
             }
             sb.append("  PRIMARY KEY (`ID`)\n");
-            if (t.getRemarks() != null && !t.getRemarks().equals("")) {
-                sb.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='" + t.getRemarks() + "' ROW_FORMAT=DYNAMIC;\n\n");
+            if (t.getRawRemarks() != null && !t.getRawRemarks().equals("")) {
+                sb.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='" + t.getRawRemarks() + "' ROW_FORMAT=DYNAMIC;\n\n");
             } else {
                 sb.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;\n\n");
             }

@@ -1,5 +1,8 @@
 package com.android305.ddbormg.mysql;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class ForeignKey {
 
     private String name;
@@ -7,11 +10,11 @@ public class ForeignKey {
     private String referencesTableName;
     private String referencesColumnName;
 
-    public ForeignKey(String name, String columnName, String referencesTableName, String referencesColumnName) {
-        this.name = name;
-        this.columnName = columnName;
-        this.referencesTableName = referencesTableName;
-        this.referencesColumnName = referencesColumnName;
+    ForeignKey(ResultSet rs) throws SQLException {
+        name = rs.getString("FK_NAME");
+        columnName = rs.getString("FKCOLUMN_NAME");
+        referencesTableName = rs.getString("PKTABLE_NAME");
+        referencesColumnName = rs.getString("PKCOLUMN_NAME");
     }
 
     public String getName() {
